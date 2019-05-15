@@ -10,4 +10,4 @@
 
 1. Create a new dataset in Fuseki called `1111`
 2. Load Duplex house in (./app/static/Duplex.ttl)
-3. Use cURL or Postman to check that you recieve some data on `{HOST}/1111/arch/rooms`
+3. Use cURL or Postman to check that you recieve some data on `{HOST}/1111/arch/rooms` (`http://localhost:3000/1111/arch/rooms`)
