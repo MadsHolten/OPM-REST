@@ -1,0 +1,4 @@
+{
+    "dataNamespace": "http://web-bim/projects",
+    "triplestoreEndpoint": "http://localhost:3030"
+}
