@@ -26,7 +26,7 @@ The `class-assignment.dyn` Dynamo script does the following:
 2. Generate triples in the form `<sp> a bot:Space` (`inst:xx rdf:type bot:Space`)
 3. Write triples to file
 
-![class-assignment image](./dynamo-scripts/class-assignment.png "class-assignment image")
+![class-assignment image](./class-assignment.png "class-assignment image")
 
 Example files generated with this script located in `data/sample_data`:
 
@@ -41,7 +41,7 @@ The `property-assignment.dyn` Dynamo script does the following:
 3. Generate triples in the form `<el> <prop> "value"^^<datatype>`
 4. Write triples to file
 
-![property-assignment image](./dynamo-scripts/property-assignment.png "property-assignment image")
+![property-assignment image](./property-assignment.png "property-assignment image")
 
 Example file generated with this script located in `data/sample_data`:
 
@@ -58,7 +58,7 @@ The `class-create.dyn` Dynamo script does the following:
 4. Generate triples in the form `<el> a <cl> .`
 5. Write triples to file
 
-![class-create image](./dynamo-scripts/class-create.png "class-create image")
+![class-create image](./class-create.png "class-create image")
 
 Example files generated with this script located in `data/sample_data`:
 
@@ -75,7 +75,7 @@ The `space-storey.dyn` Dynamo script does the following:
 3. Generate triples in the form `<st> bot:hasSpace <sp> .`
 4. Write triples to file
 
-![space-storey image](./dynamo-scripts/space-storey.png "space-storey image")
+![space-storey image](./space-storey.png "space-storey image")
 
 The `space-adjacency.dyn` Dynamo script does the following:
 
@@ -84,7 +84,7 @@ The `space-adjacency.dyn` Dynamo script does the following:
 3. Generate triples in the form `<sp1> bot:adjacentZone <sp2> .`
 4. Write triples to file
 
-![space-adjacency image](./dynamo-scripts/space-adjacency.png "space-adjacency image")
+![space-adjacency image](./space-adjacency.png "space-adjacency image")
 
 The `space-element-adjacency.dyn` Dynamo script does the following:
 
@@ -94,14 +94,14 @@ The `space-element-adjacency.dyn` Dynamo script does the following:
 4. Generate triples in the form `<sp> bot:adjacentElement <el> .`
 5. Write triples to file
 
-![space-element-adjacency image](./dynamo-scripts/space-element-adjacency.png "space-element-adjacency image")
+![space-element-adjacency image](./space-element-adjacency.png "space-element-adjacency image")
 
 ### 5. class-properties
 Class properties are extracted exactly as instance properties but the OPM-REST API treats them differently as they are assigned as OWL property restrictions.
 
 The `class-properties.dyn` Dynamo script demonstrates how this is done wor wall types.
 
-![class-properties image](./dynamo-scripts/class-properties.png "class-properties image")
+![class-properties image](./class-properties.png "class-properties image")
 
 Example file generated with this script located in `data/sample_data`:
 
