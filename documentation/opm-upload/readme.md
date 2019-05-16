@@ -96,12 +96,12 @@ The `space-element-adjacency.dyn` Dynamo script does the following:
 
 ![space-element-adjacency image](./space-element-adjacency.png "space-element-adjacency image")
 
-### 5. class-property-assignment
+### 5. class-properties
 Class properties are extracted exactly as instance properties but the OPM-REST API treats them differently as they are assigned as OWL property restrictions.
 
-The `class-property-assignment.dyn` Dynamo script demonstrates how this is done wor wall types.
+The `class-properties.dyn` Dynamo script demonstrates how this is done wor wall types.
 
-![class-property-assignment image](./class-property-assignment.png "class-property-assignment image")
+![class-properties image](./class-properties.png "class-properties image")
 
 Example file generated with this script located in `data/sample_data`:
 

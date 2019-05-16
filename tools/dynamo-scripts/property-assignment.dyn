@@ -214,12 +214,12 @@
     {
       "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
       "NodeType": "CodeBlockNode",
-      "Code": "\"https://dtu.dk/projects/1001/spaces/\";",
+      "Code": "\"http://localhost:3000/duplex/arch/spaces/\";",
       "Id": "b8fbc10e87c149ff9708f322d80c62d5",
       "Inputs": [],
       "Outputs": [
         {
-          "Id": "422178e1652549f6ac038fd70d057082",
+          "Id": "5fc2c4b13cbb4147aca2fe801d521a89",
           "Name": "",
           "Description": "Value of expression at line 1",
           "UsingDefaultValue": false,
@@ -419,9 +419,9 @@
       "Id": "f297f44c54ee495696b56982f0ef604f"
     },
     {
-      "Start": "422178e1652549f6ac038fd70d057082",
+      "Start": "5fc2c4b13cbb4147aca2fe801d521a89",
       "End": "c4f7f9da587848a0ad99d97b6e695690",
-      "Id": "3569f42584f4448e9d95fed10c178f78"
+      "Id": "f3dc7db6f42c43ebadf630bcf762e453"
     },
     {
       "Start": "8508cf1d0ffc4207bd8c3fd878877a6d",
@@ -640,9 +640,9 @@
           "b8fbc10e87c149ff9708f322d80c62d5",
           "2279380f3e794a1db42b70f0aa144e75",
           "729adad1ce7d49fab5c2277afbcf8455",
-          "17afba9ac932428985c8da7ab7a9a331",
           "9924cb0274c449fdab0d131093d1a885",
-          "c54b606d4a0547559b2cc9b98da6d580"
+          "c54b606d4a0547559b2cc9b98da6d580",
+          "17afba9ac932428985c8da7ab7a9a331"
         ],
         "Left": 73.0964130091121,
         "Top": -662.85552822277327,
@@ -650,7 +650,7 @@
         "Height": 511.19226617475994,
         "FontSize": 36.0,
         "InitialTop": -609.85552822277327,
-        "InitialHeight": 393.9427221107062,
+        "InitialHeight": 510.19226617475994,
         "TextblockHeight": 43.0,
         "Background": "#FF71C6A8"
       },

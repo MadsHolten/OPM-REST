@@ -7,9 +7,33 @@ const fuseki = require('./helpers/fuseki-connection')
 app.use(bodyParser.json()); // Parse JSON
 
 // ROUTES
-require('./routes/project-number/discipline/opm-upload').classAssignment(app)
+
+/**
+ * OPM-upload routes
+ * 
+ * POST     /:projNo/opm-upload/class-assignment
+ * POST     /:projNo/opm-upload/class-create
+ * POST     /:projNo/opm-upload/property-assignment
+ * POST     /:projNo/opm-upload/relationship-assignment
+ * POST     /:projNo/opm-upload/class-property-assignment
+ */
+require('./routes/project-number/opm-upload').classAssignment(app)
+require('./routes/project-number/opm-upload').classCreate(app)
+require('./routes/project-number/opm-upload').propertyAssignment(app)
+require('./routes/project-number/opm-upload').relationshipAssignment(app)
+require('./routes/project-number/opm-upload').classPropertyAssignment(app)
+
+/**
+ * Resource type routes
+ * 
+ * GET      /:projNo/:discipline/:type/:id      Returns a specific element and its relationships to other elements
+ * GET      /:projNo/:discipline/rooms          Returns all instances of bot:Space
+ */
 require('./routes/project-number/discipline/type').rooms(app)
 require('./routes/project-number/discipline/type').init(app)
+
+
+
 
 //Handle errors
 app.use((err, req, res, next) => {

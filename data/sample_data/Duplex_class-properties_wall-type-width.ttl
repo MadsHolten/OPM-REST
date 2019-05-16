@@ -1,4 +1,4 @@
-@prefix inst: <https://dtu.dk/projects/1001/spaces/> .
+@prefix inst: <http://localhost:3000/duplex/arch/spaces/> .
 @prefix props: <https://w3id.org/props#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 

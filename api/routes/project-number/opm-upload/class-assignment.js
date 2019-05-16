@@ -1,6 +1,5 @@
-const fuseki = require('../../../../helpers/fuseki-connection')
-const uriGen = require('../../../../helpers/uri-create')
-const config = require('../../../../../config.json')
+const fuseki = require('../../../helpers/fuseki-connection')
+const config = require('../../../../config.json')
 const path = require('path')
 const uploadsFolder = path.join(__dirname, '../../../../static/uploads')
 const tempUploadFolder = path.join(uploadsFolder, '/temp')
@@ -17,7 +16,7 @@ var upload = multer({
 module.exports = (app) => {
 
     // DESCRIBE RESOURCE
-    app.post('/:projNo/:discipline/opm-upload/class-assignment', async (req, res, next) => {
+    app.post('/:projNo/opm-upload/class-assignment', async (req, res, next) => {
 
         // Get data
         const projNo = req.params.projNo
