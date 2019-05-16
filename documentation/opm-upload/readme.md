@@ -1,108 +1,101 @@
 ## Content
-This folder contains a set of Dynamo scripts that can be used to extract BOT-compliant LBD-triples from a Revit model. The scripts generate triples that can be sent to OPM-REST API through POST requests. They can be divided into three categories, which the API treats differently.
-All scripts generate URIs in the form:
 
-`{prefix}:{RevitGUID}`. 
 
-The prefix can be set to anything but for them to work with the OPM-REST API, it should have the following form:
 
-`{host}/{projectNumber}/{discipline}/{type}/{id}`
+### 1. /:projectNumber/opm-upload/class-assignment
+A POST request to this route with a turtle file as payload is accepted. The expected triple format is:
 
-| Item          | Description                                                               | Example                  |
-| ------------- |:------------------------------------------------------------------------- | ------------------------ |
-| host          | The host address of the OPM-REST server including the protocol.           | http://niras.dk/projects |
-| projectNumber | The project number. This is also the name of the dataset on Fuseki.       | 105519                   |
-| discipline    | The discipline of the creator of the data (the source of the information) | arch / hvac / ict        |
-| type          | The type of the resource in plural. For Revit exports, use the Revit type name. | rooms / properties / states / levels |
-| id            | The id can in practice blot be a running number for each particular kind of item but for easier reference, the Revit GUID is preferred. | 2c391822-07f8-4a22-86a8-a1e574103a53-0002dd93 |
+```turtle
+<el> a <someClass> .
+```
 
-Example:
-`http://niras.dk/projects/105519/arch/walls/2c391822-07f8-4a22-86a8-a1e574103a53-0002dd93`
+The triples are inserted in a temporary graph in the Fuseki dataset (matched by `:projectNumber` query parameter). It is checked if the resource already exists and if so, it is skipped. If not, it is inserted and a time stamp is assigned to it.
 
-### 1. class-assignment
-The `class-assignment.dyn` Dynamo script does the following:
-
-1. Extract Revit elements of a certain category
-2. Generate triples in the form `<sp> a bot:Space` (`inst:xx rdf:type bot:Space`)
-3. Write triples to file
+```turtle
+<el> a <someClass> ;
+    prov:generatedAtTime "currentTime"^^xsd:dateTime .
+```
 
 ![class-assignment image](./class-assignment.png "class-assignment image")
 
-Example files generated with this script located in `data/sample_data`:
+### 2. /:projectNumber/opm-upload/property-assignment
+A POST request to this route with a turtle file as payload is accepted. The expected triple format is:
 
-* Duplex_class-assignment_spaces.ttl
-* Duplex_class-assignment_walls.ttl
+```turtle
+<el> <someProperty> "someValue"^^<someDatatype> .
+```
 
-### 2. property-assignment
-The `property-assignment.dyn` Dynamo script does the following:
+The triples are inserted in a temporary graph in the Fuseki dataset (matched by `:projectNumber` query parameter). It is checked if the property has already been assigned to the resource. If the property doesn't already exist, a new property and property state is generated (URIs generated automatically).
 
-1. Extract Revit elements of a certain category
-2. Get a specific property of these elements
-3. Generate triples in the form `<el> <prop> "value"^^<datatype>`
-4. Write triples to file
+```turtle
+<el> <someProperty> <generatedPropertyURI> .
+<generatedPropertyURI> opm:hasPropertyState <generatedPropertyStateURI> .
+<generatedPropertyStateURI> a opm:CurrentPropertyState , opm:InitialPropertyState ;
+    prov:generatedAtTime "currentTime"^^xsd:dateTime ;
+    schema:value "someValue"^^<someDatatype> .
+```
 
-![property-assignment image](./property-assignment.png "property-assignment image")
+If the property exists it is checked if the value has changed. If so, the `opm:CurrentPropertyState` from the most recent property state is replaced with a `opm:OutdatedPropertyState` and a new property state is generated (URI generated automatically).
 
-Example file generated with this script located in `data/sample_data`:
+```turtle
+<existingPropertyURI> opm:hasPropertyState <generatedPropertyStateURI> .
+<generatedPropertyStateURI> a opm:CurrentPropertyState ;
+    prov:generatedAtTime "currentTime"^^xsd:dateTime ;
+    schema:value "someValue"^^<someDatatype> .
+```
 
-* Duplex_property-assignment_space-floor-area.ttl
+If the value hasn't changed, the property is skipped.
 
-### 3. class-create
-Revit Family Types such as specific wall types or window types are treated as project specific OWL classes. This means that in addition to being a bot:Element a wall is also a proj:revitType. Extracting Revit Family Types as OWL classes and assigning instances of this family to the class is handled in the `class-create.dyn` Dynamo script.
+### 3. /:projectNumber/opm-upload/class-create
+A POST request to this route with a turtle file as payload is accepted. The expected triple format is:
 
-The `class-create.dyn` Dynamo script does the following:
+```turtle
+<class> a owl:Class ;
+    rdfs:subClassOf <someClass> .
+```
 
-1. Extract Revit elements of a certain category
-2. Get the types of these elements
-3. Generate triples in the form `<cl> a owl:Class ; rdfs:subClassOf bot:Element .`
-4. Generate triples in the form `<el> a <cl> .`
-5. Write triples to file
+If the class doesn't already exist it is created.
 
 ![class-create image](./class-create.png "class-create image")
 
-Example files generated with this script located in `data/sample_data`:
+### 4. /:projectNumber/opm-upload/relationship-assignment
+A POST request to this route with a turtle file as payload is accepted. The expected triple format is:
 
-* Duplex_class-create_wall-types.ttl
-* Duplex_class-assignment_wall-types.ttl
+```turtle
+<a> <someRelation> <b> .
+```
 
-### 4. relationship-assignment
-For relationship assignment it is hard to make a one size fits all but the `space-storey.dyn`, `space-adjacency.dyn` and `space-element-adjacency.dyn` demonstrate how it can be handled.
+Nothing special happens. The triples are simply inserted in the Fuseki dataset (matched by `:projectNumber` query parameter).
 
-The `space-storey.dyn` Dynamo script does the following:
+![relationship-assignment image](./relationship-assignment.png "relationship-assignment image")
 
-1. Extract Revit rooms
-2. Get the levels on which they are located (requires Archi-lab package)
-3. Generate triples in the form `<st> bot:hasSpace <sp> .`
-4. Write triples to file
+### 5. /:projectNumber/opm-upload/class-property-assignment
+A POST request to this route with a turtle file as payload is accepted. The expected triple format is:
 
-![space-storey image](./space-storey.png "space-storey image")
+```turtle
+<class> <someProperty> "someValue"^^<someDatatype> .
+```
 
-The `space-adjacency.dyn` Dynamo script does the following:
+The triples are inserted in a temporary graph in the Fuseki dataset (matched by `:projectNumber` query parameter). It is checked if the property has already been assigned to the class. If the property doesn't already exist, a new property restriction, property and property state is generated (URIs generated automatically).
 
-1. Extract Revit rooms
-2. Get adjacencies between these (simplified method using bounding box)
-3. Generate triples in the form `<sp1> bot:adjacentZone <sp2> .`
-4. Write triples to file
+```turtle
+<class> rdfs:subClassOf <generatedRestrictionURI> .
+<generatedRestrictionURI> a owl:Restriction ;
+    owl:onProperty <someProperty> ;
+    owl:hasValue <generatedPropertyURI> .
+<generatedPropertyURI> opm:hasPropertyState <generatedPropertyStateURI> .
+<generatedPropertyStateURI> a opm:CurrentPropertyState , opm:InitialPropertyState ;
+    prov:generatedAtTime "currentTime"^^xsd:dateTime ;
+    schema:value "someValue"^^<someDatatype> .
+```
 
-![space-adjacency image](./space-adjacency.png "space-adjacency image")
+If the property exists it is checked if the value has changed. If so, the `opm:CurrentPropertyState` from the most recent property state is replaced with a `opm:OutdatedPropertyState` and a new property state is generated (URI generated automatically).
 
-The `space-element-adjacency.dyn` Dynamo script does the following:
+```turtle
+<existingPropertyURI> opm:hasPropertyState <generatedPropertyStateURI> .
+<generatedPropertyStateURI> a opm:CurrentPropertyState ;
+    prov:generatedAtTime "currentTime"^^xsd:dateTime ;
+    schema:value "someValue"^^<someDatatype> .
+```
 
-1. Extract Revit rooms
-2. Extract Revit elements of a certain category
-3. Get adjacencies between these (simplified method using bounding box)
-4. Generate triples in the form `<sp> bot:adjacentElement <el> .`
-5. Write triples to file
-
-![space-element-adjacency image](./space-element-adjacency.png "space-element-adjacency image")
-
-### 5. class-properties
-Class properties are extracted exactly as instance properties but the OPM-REST API treats them differently as they are assigned as OWL property restrictions.
-
-The `class-properties.dyn` Dynamo script demonstrates how this is done wor wall types.
-
-![class-properties image](./class-properties.png "class-properties image")
-
-Example file generated with this script located in `data/sample_data`:
-
-* Duplex_class-properties_wall-type-width.ttl
+If the value hasn't changed, the property is skipped.

@@ -20,12 +20,16 @@ module.exports = (app) => {
 
         // Get data
         const projNo = req.params.projNo
+        var msg;
 
         // Make URI for temp graph
         const tempGraphURI = `${config.dataNamespace}/${projNo}/class-ass-temp`
 
         // Get file content and load it in temp graph
         upload(req, res, async (err) => {
+
+            // Throw error if no file recieved
+            if(!req.file) next({msg: "No file recieved", status: 400})
 
             // Throw error if upload fails
             if(err) next({msg: "File upload failed", status: 422})
@@ -61,7 +65,6 @@ module.exports = (app) => {
             }
 
             // Update result message if count = 0
-            var msg;
             if(count == 0){
                 msg = `All class assignments already exist in the main graph.`;
             }
