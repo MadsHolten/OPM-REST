@@ -43,9 +43,10 @@ The `property-assignment.dyn` Dynamo script does the following:
 
 ![property-assignment image](./property-assignment.png "property-assignment image")
 
-Example file generated with this script located in `data/sample_data`:
+Example files generated with this script (and `space-boundaries-WKT.dyn`) located in `data/sample_data`:
 
 * Duplex_property-assignment_space-floor-area.ttl
+* Duplex_property-assignment_space-boundaries-WKT.ttl
 
 ### 3. class-create
 Revit Family Types such as specific wall types or window types are treated as project specific OWL classes. This means that in addition to being a bot:Element a wall is also a proj:revitType. Extracting Revit Family Types as OWL classes and assigning instances of this family to the class is handled in the `class-create.dyn` Dynamo script.
