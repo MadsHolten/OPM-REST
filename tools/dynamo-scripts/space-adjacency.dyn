@@ -1,0 +1,518 @@
+{
+  "Uuid": "3c9d0464-8643-5ffe-96e5-ab1769818209",
+  "IsCustomNode": false,
+  "Description": "",
+  "Name": "space-adjacency",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Function, DynamoCore",
+      "FunctionSignature": "12c4cde0-3fe8-4a48-ae7e-74202be5c2b8",
+      "FunctionType": "Graph",
+      "NodeType": "FunctionNode",
+      "Id": "59867bc3a6fa4ae9877721ec9c389224",
+      "Inputs": [
+        {
+          "Id": "8630028683f04cf6bb17ef44e572a976",
+          "Name": "Element",
+          "Description": "var[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "655b3d48fc024acd91d0f58739ad8a6c",
+          "Name": "ElementCheck",
+          "Description": "var[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "c8dd9c9b8c6749949b8285dd8bbc3f45",
+          "Name": "Tolerance",
+          "Description": "var[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "82f3a24f05874622b9b2043b26e50392",
+          "Name": "Set of elements",
+          "Description": "return value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Get Surrounding Elements by Categories, group them  as  List. Tolerance distance available."
+    },
+    {
+      "ConcreteType": "DSRevitNodesUI.Categories, DSRevitNodesUI",
+      "SelectedIndex": 416,
+      "NodeType": "ExtensionNode",
+      "Id": "e79a7d8f52ed40fe8f908de917831315",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "1bc8f72281334e49b9dc7a9352790011",
+          "Name": "Category",
+          "Description": "The selected Category.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "All built-in categories."
+    },
+    {
+      "ConcreteType": "DSRevitNodesUI.ElementsOfCategory, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "Id": "f9872eebaec94bf1b4b9aaff4cbad363",
+      "Inputs": [
+        {
+          "Id": "16a0fc44cefb41dd990b51ca15cd6b3f",
+          "Name": "Category",
+          "Description": "The Category",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "be32371e2f724c52b9f75584be902dcb",
+          "Name": "Elements",
+          "Description": "An element type.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Get all elements of the specified category from the model."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "0.7;",
+      "Id": "baf1c010f53d4249861a2ba4bb848a78",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "f03fa0952b174241b1c1a801244ac1e1",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "instNS =\t\tIN[0]\t# Namespace to be used for each class instance (ex http://someArchitect/projA/)\nadjacencies = \tIN[1]\t# List of adjacencies\n\n# PREFIXES\nstr = \"@prefix inst: <%s> .\\n\" % instNS\nstr+= \"@prefix bot: <https://w3id.org/bot#> .\\n\\n\"\n\nfor adjSpaces in adjacencies:\n\tguidA = adjSpaces[0].UniqueId\n\t\n\tadjSet = set()\n\tfor space in adjSpaces:\n\t\tif space != adjSpaces[0] and space not in adjSet:\n\t\t\tguidB = space.UniqueId\n\t\t\t\n\t\t\tstr+= 'inst:%s bot:adjacentZone inst:%s .\\n' % (guidA, guidB)\n\t\t\tadjSet.add(space)\n\n#Assign your output to the OUT variable.\nOUT = str",
+      "VariableInputPorts": true,
+      "Id": "fb29dd603628486fbba7767b83c2c7b7",
+      "Inputs": [
+        {
+          "Id": "b6932190cba54627b8dbd40df6c6ab63",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "4e2848cd7df84566b6b12054b8e4911e",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "8ee1d6958325475ba7d60157bf5d9fd3",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "36f52654834b411496d734dc2a7e0562",
+      "Inputs": [
+        {
+          "Id": "6fc63feb2c81455d9ce1e0ef74d87912",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "d56425e61dc5426d919838162981c26f",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"http://localhost:3000/duplex/arch/spaces/\";",
+      "Id": "8d9bfd64e0334c84b2138b2593e140d1",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "c039fd1c8ef94a8a9668c05b1bf5d74f",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.IO.FileSystem.WriteText@string,string",
+      "Id": "627e7b98c7a64603b9dcec5ef80353f2",
+      "Inputs": [
+        {
+          "Id": "2d52edf720c644a1aef5c5a011374ee9",
+          "Name": "filePath",
+          "Description": "Path to write to\n\nstring",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "7041a5fbcc2f418fbec0e30562400879",
+          "Name": "text",
+          "Description": "Text content\n\nstring",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "6583cba980644617996ff45dcec347f7",
+          "Name": "void",
+          "Description": "void",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Write the text content to a file specified by the path\n\nFileSystem.WriteText (filePath: string, text: string): void"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Filename, CoreNodeModels",
+      "HintPath": "C:\\Users\\mhra\\Downloads\\test.ttl",
+      "InputValue": "..\\..\\..\\..\\..\\Downloads\\test.ttl",
+      "NodeType": "ExtensionNode",
+      "Id": "ee2fe7b968cc4ef9a13c9b568fe3b8e8",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "e1930c024d5d441cba8bf97bf9e6b740",
+          "Name": "",
+          "Description": "Filename",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a file on the system to get its filename"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "82f3a24f05874622b9b2043b26e50392",
+      "End": "4e2848cd7df84566b6b12054b8e4911e",
+      "Id": "681d0fe89d23431c85cc312b7de242ee"
+    },
+    {
+      "Start": "1bc8f72281334e49b9dc7a9352790011",
+      "End": "16a0fc44cefb41dd990b51ca15cd6b3f",
+      "Id": "fdd0bc3c9d1b452aadf56feca1c85923"
+    },
+    {
+      "Start": "be32371e2f724c52b9f75584be902dcb",
+      "End": "8630028683f04cf6bb17ef44e572a976",
+      "Id": "9d95b974b115494bb66a1a93221e6362"
+    },
+    {
+      "Start": "be32371e2f724c52b9f75584be902dcb",
+      "End": "655b3d48fc024acd91d0f58739ad8a6c",
+      "Id": "6464ec2f3232402a870c645da30c944c"
+    },
+    {
+      "Start": "f03fa0952b174241b1c1a801244ac1e1",
+      "End": "c8dd9c9b8c6749949b8285dd8bbc3f45",
+      "Id": "6dc3d27985004d2e9415c3958aa98496"
+    },
+    {
+      "Start": "8ee1d6958325475ba7d60157bf5d9fd3",
+      "End": "6fc63feb2c81455d9ce1e0ef74d87912",
+      "Id": "d6426f8a5891467297b4055045eb473b"
+    },
+    {
+      "Start": "d56425e61dc5426d919838162981c26f",
+      "End": "7041a5fbcc2f418fbec0e30562400879",
+      "Id": "0a3df0716ed149a3a182e2bb4dca4247"
+    },
+    {
+      "Start": "c039fd1c8ef94a8a9668c05b1bf5d74f",
+      "End": "b6932190cba54627b8dbd40df6c6ab63",
+      "Id": "da44f53b44d94b768d5651356561c92b"
+    },
+    {
+      "Start": "e1930c024d5d441cba8bf97bf9e6b740",
+      "End": "2d52edf720c644a1aef5c5a011374ee9",
+      "Id": "85827fb6d502405694633600867ef43c"
+    }
+  ],
+  "Dependencies": [
+    "12c4cde0-3fe8-4a48-ae7e-74202be5c2b8"
+  ],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.0.2.6826",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Tool.GetSurroundingElements",
+        "Id": "59867bc3a6fa4ae9877721ec9c389224",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 2319.12157396803,
+        "Y": -425.187797098829
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Categories",
+        "Id": "e79a7d8f52ed40fe8f908de917831315",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 1915.4548737639802,
+        "Y": -389.24114749541178
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "All Elements of Category",
+        "Id": "f9872eebaec94bf1b4b9aaff4cbad363",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 2107.820081467481,
+        "Y": -486.43682631078434
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "baf1c010f53d4249861a2ba4bb848a78",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 2131.9157045779834,
+        "Y": -322.42090769399044
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "fb29dd603628486fbba7767b83c2c7b7",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 3122.6145808151646,
+        "Y": -424.13913653054169
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "36f52654834b411496d734dc2a7e0562",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 3229.8036162343387,
+        "Y": -215.06375921325787
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "8d9bfd64e0334c84b2138b2593e140d1",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 2678.6282575013047,
+        "Y": -490.32313930717163
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "FileSystem.WriteText",
+        "Id": "627e7b98c7a64603b9dcec5ef80353f2",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 3620.516589195237,
+        "Y": -384.2717340140012
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "File Path",
+        "Id": "ee2fe7b968cc4ef9a13c9b568fe3b8e8",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 3369.055535561753,
+        "Y": -447.13699742237185
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "5f1114408af74af694b7d69ee4d77470",
+        "Title": "Generate triples",
+        "Nodes": [
+          "fb29dd603628486fbba7767b83c2c7b7",
+          "8d9bfd64e0334c84b2138b2593e140d1",
+          "3343471ab4374e0187dd71c89c758607"
+        ],
+        "Left": 2668.6282575013047,
+        "Top": -536.32313930717169,
+        "Width": 665.19018281940089,
+        "Height": 241.05191180122171,
+        "FontSize": 30.0,
+        "InitialTop": -490.32313930717163,
+        "InitialHeight": 276.05191180122171,
+        "TextblockHeight": 36.0,
+        "Background": "#FF71C6A8"
+      },
+      {
+        "Id": "8bf996d7e83343f986593d7d6625b4fd",
+        "Title": "Get relationships",
+        "Nodes": [
+          "59867bc3a6fa4ae9877721ec9c389224",
+          "e79a7d8f52ed40fe8f908de917831315",
+          "f9872eebaec94bf1b4b9aaff4cbad363",
+          "baf1c010f53d4249861a2ba4bb848a78"
+        ],
+        "Left": 1905.4548737639802,
+        "Top": -532.43682631078434,
+        "Width": 722.6667002040499,
+        "Height": 303.0159186167939,
+        "FontSize": 30.0,
+        "InitialTop": -486.43682631078434,
+        "InitialHeight": 309.0159186167939,
+        "TextblockHeight": 36.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "688f3154e36b4d7bb1f1d8aa0b540471",
+        "Title": "Write to file",
+        "Nodes": [
+          "627e7b98c7a64603b9dcec5ef80353f2",
+          "ee2fe7b968cc4ef9a13c9b568fe3b8e8"
+        ],
+        "Left": 3359.055535561753,
+        "Top": -500.13699742237185,
+        "Width": 462.46105363348397,
+        "Height": 234.86526340837065,
+        "FontSize": 36.0,
+        "InitialTop": -447.13699742237185,
+        "InitialHeight": 207.86526340837065,
+        "TextblockHeight": 43.0,
+        "Background": "#FFFFC999"
+      },
+      {
+        "Id": "3343471ab4374e0187dd71c89c758607",
+        "Title": "[0] Instance namespace\r\n[1] Relationships",
+        "Nodes": [],
+        "Left": 3179.8184403207056,
+        "Top": -354.27122750595,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      }
+    ],
+    "X": -1431.28336676671,
+    "Y": 627.51284066605524,
+    "Zoom": 0.76296264050219209
+  }
+}

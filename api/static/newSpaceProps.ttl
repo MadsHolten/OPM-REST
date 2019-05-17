@@ -1,0 +1,5 @@
+@prefix bot: <https://w3id.org/bot#> .
+@prefix ex:  <https://example.org/properties#> .
+
+<http://localhost:3000/duplex/arch/rooms/0b74b3fa-1a92-405e-9ac9-d59067bce2dd-00030205> ex:someProperty "Property value A" .
+<http://localhost:3000/duplex/arch/rooms/0b74b3fa-1a92-405e-9ac9-d59067bce2dd-00030206> ex:someProperty "Property value A" .

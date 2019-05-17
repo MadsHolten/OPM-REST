@@ -1,0 +1,12 @@
+@prefix inst: <http://localhost:3000/duplex/arch/spaces/> .
+@prefix props: <https://w3id.org/props#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+inst:961b67a3-2b6f-48ab-ad23-45e0e6490906-0001ff4c props:width "0.417"^^xsd:decimal .
+inst:054d80e5-29bc-45f6-97c0-69c66c3c40de-0001f568 props:width "0.124"^^xsd:decimal .
+inst:8e2bc680-004c-488c-9dec-200d8ec2ceae-0001f62b props:width "0.55"^^xsd:decimal .
+inst:71d46e38-ef86-466d-9add-4492c7183a3e-0001f6a4 props:width "0.417"^^xsd:decimal .
+inst:98d604b7-4c6f-4ae8-b5f3-0187bb50c215-0003292a props:width "0.435"^^xsd:decimal .
+inst:054d80e5-29bc-45f6-97c0-69c66c3c40de-0001f57e props:width "0.184"^^xsd:decimal .
+inst:2c391822-07f8-4a22-86a8-a1e574103a53-0002dd93 props:width "0.152"^^xsd:decimal .
+inst:054d80e5-29bc-45f6-97c0-69c66c3c40de-0001f594 props:width "0.054"^^xsd:decimal .
