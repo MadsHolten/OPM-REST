@@ -1,4 +1,5 @@
 const fuseki = require('../../../helpers/fuseki-connection')
+const ldTools = require('../../../helpers/ld-tools')
 const config = require('../../../../config.json')
 const path = require('path')
 const uploadsFolder = path.join(__dirname, '../../../../static/uploads')
@@ -43,21 +44,143 @@ module.exports = (app) => {
             // Delete temp file (returns promise)
             var deleteTempPromise = deleteFile(tempFilePath)
 
+            // Query to count the number of new properties that will be created
+            var q = _opmBatchCreate(tempGraphURI, 'select')
 
+            try{
+                var x = await fuseki.getQuery(projNo, q)
+                var countNew = x.results.bindings.length
+            }catch(e){
+                next({msg: e.message, status: e.status})
+            }
 
+            // Query to count the number of properties that will be updated
+            var q = _opmBatchUpdate(tempGraphURI, 'select')
+            try{
+                var x = await fuseki.getQuery(projNo, q);
+                var countUpdated = x.results.bindings.length
+            }catch(e){
+                next({msg: e.message, status: e.status})
+            }
 
+            if(countNew != 0){
+                // Insert new properties
+                q = _opmBatchCreate(tempGraphURI, 'insert')
+                try{
+                    await fuseki.updateQuery(projNo,q);
+                }catch(e){
+                    next({msg: e.message, status: e.status})
+                }
+            }
+    
+            if(countUpdated != 0){
+                // Insert new property states
+                q = _opmBatchUpdate(tempGraphURI, 'insert')
+                try{
+                    await fuseki.updateQuery(projNo,q);
+                }catch(e){
+                    next({msg: e.message, status: e.status})
+                }
+            }
 
+            // Clear temp graph
+            q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`
+            await fuseki.updateQuery(projNo,q);
 
-            
             // Make sure temp file was deleted
             await deleteTempPromise;
 
-            res.send(msg);
+            var msg = `Assigned ${countNew} new properties and updated ${countUpdated} existing properties`
+
+            res.send(msg)
 
         })
 
-        res.send("Assign property")
-
     })
 
+}
+
+var _opmBatchCreate = (tempGraphURI, queryType) => {
+
+    if(!queryType) queryType = "select";
+
+    q = "";
+        
+    if(queryType.toLowerCase() == 'select'){
+        q+= "SELECT DISTINCT ?foiURI ?prop\n";
+    }else{
+        q+= `${queryType.toUpperCase()} {`;
+        
+        q+= `?foiURI ?prop ?propURI .
+            ?propURI opm:hasPropertyState ?stateURI .
+            ?stateURI a opm:CurrentPropertyState ;
+                schema:value ?val ;
+                prov:generatedAtTime ?now ;
+                prov:wasAttributedTo "Arch-Revit-Model" .
+            }\n`;
+    }
+
+    q+= `WHERE {
+            GRAPH <${tempGraphURI}> {
+                ?foiURI ?prop ?val
+            }
+            MINUS {
+                ?foiURI ?prop ?x
+            }`;
+
+    if(queryType.toLowerCase() != 'select'){
+        q+= `BIND(IRI(CONCAT(REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "properties/"), STRUUID())) AS ?propURI)
+            BIND(IRI(CONCAT(REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "states/"), STRUUID())) AS ?stateURI)
+            BIND(NOW() AS ?now)\n`;
+    }
+
+    q+= `}`;
+
+    return ldTools.appendPrefixesToQuery(q);
+}
+
+var _opmBatchUpdate = (tempGraphURI, queryType) => {
+    
+    if(!queryType) queryType = "select";
+
+    q = "";
+        
+    if(queryType.toLowerCase() == 'select'){
+        q+= "SELECT DISTINCT ?foiURI ?prop\n";
+    }else{        
+        if(queryType.toLowerCase() == 'insert'){
+            q+= `DELETE {
+                    ?currentState a opm:CurrentPropertyState .
+                }
+                INSERT {\n`;
+        } else if(queryType.toLowerCase() == 'construct'){
+            q+= `CONSTRUCT {\n`;
+        }
+
+        q+= `\t?propURI opm:hasPropertyState ?stateURI .
+                ?stateURI a opm:CurrentPropertyState ;
+                    schema:value ?newVal ;
+                    prov:generatedAtTime ?now ;
+                    prov:wasAttributedTo "Arch-Revit-Model" .
+            }\n`;
+    }
+
+    q+= `WHERE {
+            GRAPH <${tempGraphURI}> {
+                ?foiURI ?prop ?newVal
+            }
+            ?foiURI ?prop ?propURI .
+            ?propURI opm:hasPropertyState ?currentState .
+            ?currentState a opm:CurrentPropertyState ;
+                schema:value ?currentVal .
+            FILTER(xsd:string(?newVal) != xsd:string(?currentVal))\n`;
+    
+    if(queryType.toLowerCase() != 'select'){
+        q+= `BIND(IRI(CONCAT(REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "states/"), STRUUID())) AS ?stateURI)
+            BIND(NOW() AS ?now)\n`;
+    }
+
+    q+= `}`;
+
+    return ldTools.appendPrefixesToQuery(q);
 }
