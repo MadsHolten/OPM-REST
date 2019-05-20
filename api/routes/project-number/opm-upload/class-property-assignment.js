@@ -47,8 +47,6 @@ module.exports = (app) => {
 
 
 
-
-
             
             // Make sure temp file was deleted
             await deleteTempPromise;

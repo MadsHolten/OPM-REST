@@ -1,4 +1,62 @@
 {
     "dataNamespace": "http://web-bim/projects",
-    "triplestoreEndpoint": "http://localhost:3030"
+    "triplestoreEndpoint": "http://localhost:3030",
+    "namespaces": [
+        {
+            "prefix": "cdt",
+            "uri": "http://w3id.org/lindt/custom_datatypes#"
+        },
+        {
+            "prefix": "prov",
+            "uri": "http://www.w3.org/ns/prov#"
+        },
+        {
+            "prefix": "bot",
+            "uri": "https://w3id.org/bot#"
+        },
+        {
+            "prefix": "ice",
+            "uri": "https://w3id.org/ice#"
+        },
+        {
+            "prefix": "fso",
+            "uri": "https://w3id.org/fso#"
+        },
+        {
+            "prefix": "opm",
+            "uri": "https://w3id.org/opm#"
+        },
+        {
+            "prefix": "props",
+            "uri": "https://w3id.org/props#"
+        },
+        {
+            "prefix": "product",
+            "uri": "https://w3id.org/product#"
+        },
+        {
+            "prefix": "rdfs",
+            "uri": "http://www.w3.org/2000/01/rdf-schema#"
+        },
+        {
+            "prefix": "rdf",
+            "uri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        },
+        {
+            "prefix": "owl",
+            "uri": "http://www.w3.org/2002/07/owl#"
+        },
+        {
+            "prefix": "skos",
+            "uri": "http://www.w3.org/2004/02/skos/core#"
+        },
+        {
+            "prefix": "schema",
+            "uri": "http://schema.org/"
+        },
+        {
+            "prefix": "xsd",
+            "uri": "http://www.w3.org/2001/XMLSchema#"
+        }
+    ]
 }
