@@ -1,4 +1,3 @@
 module.exports = {
-    init: require('./init'),
-    rooms: require('./rooms')
+    init: require('./init')
 }

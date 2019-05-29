@@ -2,7 +2,7 @@
   "Uuid": "3c9d0464-8643-5ffe-96e5-ab1769818209",
   "IsCustomNode": false,
   "Description": "",
-  "Name": "class-properties",
+  "Name": "class-property-assignment",
   "ElementResolver": {
     "ResolutionMap": {}
   },
@@ -12,7 +12,7 @@
     {
       "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
       "NodeType": "PythonScriptNode",
-      "Code": "#The inputs to this node will be stored as a list in the IN variables.\ninstNS = IN[0]\npropPFX = IN[1][0]\npropNS = IN[1][1]\nprop = IN[2]\ndtPFX = IN[3][0]\ndtNS = IN[3][1]\ndt = IN[4]\nelements = IN[5]\nproperties = IN[6]\n\n# PREFIXES\nstr = \"@prefix inst: <%s> .\\n\" % instNS\nstr+= \"@prefix %s: <%s> .\\n\" % (propPFX, propNS)\nstr+= \"@prefix %s: <%s> .\\n\\n\" % (dtPFX, dtNS)\n\n# INSTANCES\nfor i, e in enumerate(elements):\n\tstr+= 'inst:%s %s \"%s\"^^%s .\\n' % (e.UniqueId, prop, properties[i], dt)\n\nOUT = str",
+      "Code": "import sys\nsys.path.append(r'C:\\Program Files (x86)\\IronPython 2.7\\Lib')\nimport urllib\n\n#The inputs to this node will be stored as a list in the IN variables.\nclassNS = IN[0]\npropPFX = IN[1][0]\npropNS = IN[1][1]\nprop = IN[2]\ndtPFX = IN[3][0]\ndtNS = IN[3][1]\ndt = IN[4]\nelements = IN[5]\nproperties = IN[6]\n\ndef _get_id_name(e):\n\t# Make lowercase and replace æ, ø, å\n\tn = e.Name.lower()\n\tn = n.replace('æ', 'ae').replace('ø', 'oe').replace('å', 'aa')\n\t# Make PascalCaseName\n\tn = ''.join(x for x in n.title() if x.isalnum())\n\t# URL encode\n\tn = urllib.quote(n)\n\treturn n\n\n# PREFIXES\nstr = \"@prefix ont: <%s> .\\n\" % classNS\nstr+= \"@prefix %s: <%s> .\\n\" % (propPFX, propNS)\nstr+= \"@prefix %s: <%s> .\\n\\n\" % (dtPFX, dtNS)\n\n# INSTANCES\nfor i, e in enumerate(elements):\n\tclassId = _get_id_name(e)\n\tstr+= 'ont:%s %s \"%s\"^^%s .\\n' % (classId, prop, properties[i], dt)\n\nOUT = str",
       "VariableInputPorts": true,
       "Id": "1744dc638ef6472cb35c66153b22e617",
       "Inputs": [
@@ -165,12 +165,12 @@
     {
       "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
       "NodeType": "CodeBlockNode",
-      "Code": "\"http://localhost:3000/duplex/arch/spaces/\";",
+      "Code": "\"http://localhost:3000/duplex/arch/ontology#\";",
       "Id": "b8fbc10e87c149ff9708f322d80c62d5",
       "Inputs": [],
       "Outputs": [
         {
-          "Id": "dc9a6a36d15b4d92af1ef88890ad0f5c",
+          "Id": "7cf01d22752b47a7815197e52d819d45",
           "Name": "",
           "Description": "Value of expression at line 1",
           "UsingDefaultValue": false,
@@ -464,9 +464,9 @@
       "Id": "f297f44c54ee495696b56982f0ef604f"
     },
     {
-      "Start": "dc9a6a36d15b4d92af1ef88890ad0f5c",
+      "Start": "7cf01d22752b47a7815197e52d819d45",
       "End": "c4f7f9da587848a0ad99d97b6e695690",
-      "Id": "2c107130d22f4f56a7b67d04c6b86ac7"
+      "Id": "04e6d9a5888949a3b8a67c95da9126d3"
     },
     {
       "Start": "8508cf1d0ffc4207bd8c3fd878877a6d",
@@ -580,12 +580,12 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 948.51910228633119,
-        "Y": -334.1182650703804
+        "X": 913.87349795235741,
+        "Y": -322.56973029238918
       },
       {
         "ShowGeometry": true,
-        "Name": "Instance namespace",
+        "Name": "Class namespace",
         "Id": "b8fbc10e87c149ff9708f322d80c62d5",
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
@@ -718,13 +718,13 @@
           "17afba9ac932428985c8da7ab7a9a331"
         ],
         "Left": 73.0964130091121,
-        "Top": -662.85552822277327,
-        "Width": 804.67471095557937,
-        "Height": 511.19226617475994,
+        "Top": -663.05552822277332,
+        "Width": 805.47471095557944,
+        "Height": 510.99226617475995,
         "FontSize": 36.0,
         "InitialTop": -609.85552822277327,
         "InitialHeight": 510.19226617475994,
-        "TextblockHeight": 43.0,
+        "TextblockHeight": 43.2,
         "Background": "#FF71C6A8"
       },
       {
@@ -735,13 +735,13 @@
           "1b841c11b4c7404092829251d8ff3eeb"
         ],
         "Left": 950.17156725241307,
-        "Top": -637.04162632967052,
-        "Width": 392.85875154650148,
-        "Height": 249.80012449460617,
+        "Top": -637.24162632967057,
+        "Width": 391.4587515465015,
+        "Height": 249.2001244946062,
         "FontSize": 36.0,
         "InitialTop": -584.04162632967052,
         "InitialHeight": 222.80012449460617,
-        "TextblockHeight": 43.0,
+        "TextblockHeight": 43.2,
         "Background": "#FFFFC999"
       },
       {
@@ -752,13 +752,13 @@
           "0def650397594e40aecaba2b932485c0"
         ],
         "Left": -498.20634400932204,
-        "Top": -403.38953503373205,
-        "Width": 481.62810784408009,
-        "Height": 197.17020440080898,
+        "Top": -403.58953503373203,
+        "Width": 481.02810784408007,
+        "Height": 196.97020440080897,
         "FontSize": 36.0,
         "InitialTop": -350.38953503373205,
         "InitialHeight": 196.17020440080898,
-        "TextblockHeight": 43.0,
+        "TextblockHeight": 43.2,
         "Background": "#FFE8F7AD"
       },
       {
@@ -772,8 +772,8 @@
         ],
         "Left": -641.073679181231,
         "Top": -709.06602404174851,
-        "Width": 622.76886727235524,
-        "Height": 257.679944131359,
+        "Width": 623.36886727235526,
+        "Height": 257.279944131359,
         "FontSize": 30.0,
         "InitialTop": -663.06602404174851,
         "InitialHeight": 263.679944131359,
@@ -795,8 +795,8 @@
         "Background": "#FFC1D676"
       }
     ],
-    "X": 539.828158752903,
-    "Y": 770.13460359406224,
-    "Zoom": 0.77282174076795729
+    "X": 109.75243458403952,
+    "Y": 650.09086874207833,
+    "Zoom": 0.7366422283673828
   }
 }
