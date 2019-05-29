@@ -165,12 +165,12 @@
     {
       "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
       "NodeType": "CodeBlockNode",
-      "Code": "\"http://localhost:3000/duplex/arch/ontology#\";",
+      "Code": "\"http://localhost:3000/duplex/arch/ontology/\";",
       "Id": "b8fbc10e87c149ff9708f322d80c62d5",
       "Inputs": [],
       "Outputs": [
         {
-          "Id": "7cf01d22752b47a7815197e52d819d45",
+          "Id": "dcb56749c87447b4af7a3d07a5e249c8",
           "Name": "",
           "Description": "Value of expression at line 1",
           "UsingDefaultValue": false,
@@ -464,9 +464,9 @@
       "Id": "f297f44c54ee495696b56982f0ef604f"
     },
     {
-      "Start": "7cf01d22752b47a7815197e52d819d45",
+      "Start": "dcb56749c87447b4af7a3d07a5e249c8",
       "End": "c4f7f9da587848a0ad99d97b6e695690",
-      "Id": "04e6d9a5888949a3b8a67c95da9126d3"
+      "Id": "1646f0c6c5c244f09e7f555bbc494eac"
     },
     {
       "Start": "8508cf1d0ffc4207bd8c3fd878877a6d",
@@ -795,8 +795,8 @@
         "Background": "#FFC1D676"
       }
     ],
-    "X": 109.75243458403952,
-    "Y": 650.09086874207833,
+    "X": 536.15243458403938,
+    "Y": 697.29086874207826,
     "Zoom": 0.7366422283673828
   }
 }

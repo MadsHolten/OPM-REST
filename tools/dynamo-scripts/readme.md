@@ -8,7 +8,7 @@ Class:      `{prefix}:{RevitTypeName}` (special characters removed and converted
 The prefix can be set to anything but for them to work with the OPM-REST API, it should have the following form:
 
 Instance:   `{host}/{projectNumber}/{discipline}/{type}/{id}`
-Class:      `{host}/{projectNumber}/{discipline}/ontology#{ClassName}`
+Class:      `{host}/{projectNumber}/{discipline}/ontology/{ClassName}`
 
 | Item          | Description                                                               | Example                  |
 | ------------- |:------------------------------------------------------------------------- | ------------------------ |
@@ -21,7 +21,7 @@ Class:      `{host}/{projectNumber}/{discipline}/ontology#{ClassName}`
 
 Examples:
 Instance:   `http://niras.dk/projects/105519/arch/walls/2c391822-07f8-4a22-86a8-a1e574103a53-0002dd93`
-Class:      `http://niras.dk/projects/105519/arch/ontology#HeavyWall`
+Class:      `http://niras.dk/projects/105519/arch/ontology/HeavyWall`
 
 ### 1. class-assignment
 The `class-assignment.dyn` Dynamo script does the following:

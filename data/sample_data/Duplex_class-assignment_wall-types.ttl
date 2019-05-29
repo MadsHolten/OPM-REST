@@ -1,5 +1,5 @@
 @prefix el: <http://localhost:3000/duplex/arch/walls/> .
-@prefix ont: <http://localhost:3000/duplex/arch/ontology#> .
+@prefix ont: <http://localhost:3000/duplex/arch/ontology/> .
 
 el:961b67a3-2b6f-48ab-ad23-45e0e6490906-0001ff4c a ont:ExteriorBrickOnBlock .
 el:961b67a3-2b6f-48ab-ad23-45e0e6490906-0001ff4c a ont:ExteriorBrickOnBlock .
