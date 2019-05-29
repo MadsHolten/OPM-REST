@@ -61,7 +61,7 @@
     {
       "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
       "NodeType": "PythonScriptNode",
-      "Code": "#The inputs to this node will be stored as a list in the IN variables.\nclassNS = \t\tIN[0]\nsuperClassPFX = IN[1][0]\nsuperClassNS = \tIN[1][1]\nsuperClass = \tIN[2]\nclasses =\t\tIN[3]\n\n# PREFIXES\nstr = \"@prefix inst: <%s> .\\n\" % classNS\nstr+= \"@prefix owl: <http://www.w3.org/2002/07/owl#> .\\n\"\nstr+= \"@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\\n\"\nstr+= \"@prefix %s: <%s> .\\n\\n\" % (superClassPFX, superClassNS)\n\n# INSTANCES\nfor c in classes:\n\tstr+= \"inst:%s a owl:Class ;\\n\" % (c.UniqueId)\n\tstr+= \"\\trdfs:subClassOf %s .\\n\" % (superClass)\n\nOUT = str",
+      "Code": "import sys\nsys.path.append(r'C:\\Program Files (x86)\\IronPython 2.7\\Lib')\nimport urllib\n\n#The inputs to this node will be stored as a list in the IN variables.\nclassNS = \t\tIN[0]\nsuperClassPFX = IN[1][0]\nsuperClassNS = \tIN[1][1]\nsuperClass = \tIN[2]\nclasses =\t\tIN[3]\n\ndef _get_id_name(e):\n\t# Make lowercase and replace æ, ø, å\n\tn = e.Name.lower()\n\tn = n.replace('æ', 'ae').replace('ø', 'oe').replace('å', 'aa')\n\t# Make PascalCaseName\n\tn = ''.join(x for x in n.title() if x.isalnum())\n\t# URL encode\n\tn = urllib.quote(n)\n\treturn n\n\n# PREFIXES\nstr = \"@prefix ont: <%s> .\\n\" % classNS\nstr+= \"@prefix owl: <http://www.w3.org/2002/07/owl#> .\\n\"\nstr+= \"@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\\n\"\nstr+= \"@prefix %s: <%s> .\\n\\n\" % (superClassPFX, superClassNS)\n\n# INSTANCES\nseen = set()\nerr = False\nfor c in classes:\n\t# Make PascalCaseName\n\tn = _get_id_name(c)\n\tif n in seen:\n\t\terr = True\n\tseen=seen | set([n])\n\t\n\tstr+= \"ont:%s a owl:Class ;\\n\" % (n)\n\tstr+= \"\\trdfs:subClassOf %s .\\n\" % (superClass)\nif not err:\n\tOUT = str\nelse:\n\tOUT = \"Duplicate class names were discovered\"",
       "VariableInputPorts": true,
       "Id": "1744dc638ef6472cb35c66153b22e617",
       "Inputs": [
@@ -187,12 +187,12 @@
     {
       "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
       "NodeType": "CodeBlockNode",
-      "Code": "\"http://localhost:3000/duplex/arch/wallTypes/\";",
+      "Code": "\"http://localhost:3000/duplex/arch/ontology#\";",
       "Id": "b8fbc10e87c149ff9708f322d80c62d5",
       "Inputs": [],
       "Outputs": [
         {
-          "Id": "84444be8c39f402f8747122fdc23c2d1",
+          "Id": "4c7615221cdf4d27a35d6b85ad3902f1",
           "Name": "",
           "Description": "Value of expression at line 1",
           "UsingDefaultValue": false,
@@ -328,7 +328,7 @@
     {
       "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
       "NodeType": "PythonScriptNode",
-      "Code": "#The inputs to this node will be stored as a list in the IN variables.\nclassNS = \tIN[0]\nelementNS = IN[1]\nelements = \tIN[2]\nclasses =\tIN[3]\n\n# PREFIXES\nstr = \"@prefix el: <%s> .\\n\" % elementNS\nstr+= \"@prefix cl: <%s> .\\n\\n\" % classNS\n\n# INSTANCES\nfor i, e in enumerate(elements):\n\tcl = classes[i]\n\tstr+= \"el:%s a cl:%s .\\n\" % (e.UniqueId, cl.UniqueId)\n\nOUT = str",
+      "Code": "import sys\nsys.path.append(r'C:\\Program Files (x86)\\IronPython 2.7\\Lib')\nimport urllib\n\n#The inputs to this node will be stored as a list in the IN variables.\nclassNS = \tIN[0]\nelementNS = IN[1]\nelements = \tIN[2]\nclasses =\tIN[3]\n\ndef _get_id_name(e):\n\t# Make lowercase and replace æ, ø, å\n\tn = e.Name.lower()\n\tn = n.replace('æ', 'ae').replace('ø', 'oe').replace('å', 'aa')\n\t# Make PascalCaseName\n\tn = ''.join(x for x in n.title() if x.isalnum())\n\t# URL encode\n\tn = urllib.quote(n)\n\treturn n\n\n# PREFIXES\nstr = \"@prefix el: <%s> .\\n\" % elementNS\nstr+= \"@prefix ont: <%s> .\\n\\n\" % classNS\n\n# INSTANCES\nfor i, e in enumerate(elements):\n\tcl = classes[i]\n\tclassId = _get_id_name(cl)\n\tstr+= \"el:%s a ont:%s .\\n\" % (e.UniqueId, classId)\n\nOUT = str",
       "VariableInputPorts": true,
       "Id": "8ab30f7ca61f47db80a19ab2118783ca",
       "Inputs": [
@@ -517,17 +517,17 @@
     {
       "Start": "3f545baa35dd4cec83df178bb70f0745",
       "End": "d4cc434083944eaea85d8c65c20b85fe",
-      "Id": "f297f44c54ee495696b56982f0ef604f"
+      "Id": "837860e86cfd480694ea80cb135bcef1"
     },
     {
-      "Start": "84444be8c39f402f8747122fdc23c2d1",
+      "Start": "4c7615221cdf4d27a35d6b85ad3902f1",
       "End": "c4f7f9da587848a0ad99d97b6e695690",
-      "Id": "45e21fceb1024a0481c16631d62106e3"
+      "Id": "b1605b0991e3422699497783bd7082f4"
     },
     {
-      "Start": "84444be8c39f402f8747122fdc23c2d1",
+      "Start": "4c7615221cdf4d27a35d6b85ad3902f1",
       "End": "42582fa064a543a8bc1df693434c7520",
-      "Id": "518f41c5c1b54c0e95a087daf110900f"
+      "Id": "af218ed789444a8986def67ba81c1bcf"
     },
     {
       "Start": "c3df75ca3c204408a5aa8b7e2866e2e7",
@@ -577,7 +577,7 @@
     {
       "Start": "749f2d7049a74688beb1a403a2425a9c",
       "End": "a49e1b2b9ffe498bb293e51a656396e8",
-      "Id": "bc562ac21b23488a82b5b208a7aa3d43"
+      "Id": "49fe177967c9498686daf10503076d54"
     }
   ],
   "Dependencies": [],
@@ -632,7 +632,7 @@
         "IsSetAsOutput": false,
         "Excluded": false,
         "X": 715.78285206914086,
-        "Y": -656.98570729490018
+        "Y": -656.09407436813933
       },
       {
         "ShowGeometry": true,
@@ -777,11 +777,11 @@
         ],
         "Left": -522.40377762365256,
         "Top": -750.12868952484621,
-        "Width": 622.76886727235478,
-        "Height": 257.67994413135943,
+        "Width": 623.36886727235481,
+        "Height": 257.27994413135946,
         "FontSize": 30.0,
         "InitialTop": -704.12868952484621,
-        "InitialHeight": 152.55400614138102,
+        "InitialHeight": 263.67994413135943,
         "TextblockHeight": 36.0,
         "Background": "#FFC1D676"
       },
@@ -796,13 +796,13 @@
           "17afba9ac932428985c8da7ab7a9a331"
         ],
         "Left": 126.99615752608236,
-        "Top": -888.12881940908471,
-        "Width": 815.67471095557937,
-        "Height": 394.9427221107062,
+        "Top": -888.32881940908476,
+        "Width": 815.8747109555793,
+        "Height": 394.74272211070627,
         "FontSize": 36.0,
         "InitialTop": -835.12881940908471,
         "InitialHeight": 393.9427221107062,
-        "TextblockHeight": 43.0,
+        "TextblockHeight": 43.2,
         "Background": "#FF71C6A8"
       },
       {
@@ -813,13 +813,13 @@
           "1b841c11b4c7404092829251d8ff3eeb"
         ],
         "Left": 1278.9539995800583,
-        "Top": -889.48355526471141,
-        "Width": 392.85875154650148,
-        "Height": 249.80012449460617,
+        "Top": -889.68355526471146,
+        "Width": 391.4587515465015,
+        "Height": 249.2001244946062,
         "FontSize": 36.0,
         "InitialTop": -836.48355526471141,
         "InitialHeight": 222.80012449460617,
-        "TextblockHeight": 43.0,
+        "TextblockHeight": 43.2,
         "Background": "#FFFFC999"
       },
       {
@@ -831,13 +831,13 @@
           "13bb391a4a8e425e802392cfd0fa12e4"
         ],
         "Left": 143.42294648980408,
-        "Top": -459.1697930884651,
-        "Width": 803.67471095557971,
-        "Height": 394.94272211070654,
+        "Top": -459.36979308846509,
+        "Width": 803.07471095557969,
+        "Height": 394.7427221107065,
         "FontSize": 36.0,
         "InitialTop": -406.1697930884651,
         "InitialHeight": 393.94272211070654,
-        "TextblockHeight": 43.0,
+        "TextblockHeight": 43.2,
         "Background": "#FF71C6A8"
       },
       {
@@ -848,13 +848,13 @@
           "9e4bf77d480e4863b27de43d194ffa3b"
         ],
         "Left": 1281.4621523155722,
-        "Top": -389.525661985886,
-        "Width": 392.85875154650012,
-        "Height": 249.80012449460594,
+        "Top": -389.725661985886,
+        "Width": 391.45875154650014,
+        "Height": 249.20012449460592,
         "FontSize": 36.0,
         "InitialTop": -336.525661985886,
-        "InitialHeight": 226.80012449460594,
-        "TextblockHeight": 43.0,
+        "InitialHeight": 222.80012449460594,
+        "TextblockHeight": 43.2,
         "Background": "#FFFFC999"
       },
       {
@@ -886,8 +886,8 @@
         "Background": "#FFC1D676"
       }
     ],
-    "X": 279.27614146799647,
-    "Y": 894.192025357181,
-    "Zoom": 0.71507897692724653
+    "X": -97.929596864239784,
+    "Y": 693.05022678606258,
+    "Zoom": 0.89723021210778853
   }
 }

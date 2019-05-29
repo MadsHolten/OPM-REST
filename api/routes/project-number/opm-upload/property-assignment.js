@@ -113,7 +113,7 @@ var _opmBatchCreate = (tempGraphURI, queryType) => {
         
         q+= `?foiURI ?prop ?propURI .
             ?propURI opm:hasPropertyState ?stateURI .
-            ?stateURI a opm:CurrentPropertyState ;
+            ?stateURI a opm:CurrentPropertyState , opm:InitialPropertyState ;
                 schema:value ?val ;
                 prov:generatedAtTime ?now ;
                 prov:wasAttributedTo "Arch-Revit-Model" .
@@ -150,7 +150,7 @@ var _opmBatchUpdate = (tempGraphURI, queryType) => {
     }else{        
         if(queryType.toLowerCase() == 'insert'){
             q+= `DELETE {
-                    ?currentState a opm:CurrentPropertyState .
+                    ?previousState a opm:CurrentPropertyState .
                 }
                 INSERT {\n`;
         } else if(queryType.toLowerCase() == 'construct'){
@@ -170,8 +170,8 @@ var _opmBatchUpdate = (tempGraphURI, queryType) => {
                 ?foiURI ?prop ?newVal
             }
             ?foiURI ?prop ?propURI .
-            ?propURI opm:hasPropertyState ?currentState .
-            ?currentState a opm:CurrentPropertyState ;
+            ?propURI opm:hasPropertyState ?previousState .
+            ?previousState a opm:CurrentPropertyState ;
                 schema:value ?currentVal .
             FILTER(xsd:string(?newVal) != xsd:string(?currentVal))\n`;
     

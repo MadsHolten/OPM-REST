@@ -2,11 +2,13 @@
 This folder contains a set of Dynamo scripts that can be used to extract BOT-compliant LBD-triples from a Revit model. The scripts generate triples that can be sent to OPM-REST API through POST requests. They can be divided into three categories, which the API treats differently.
 All scripts generate URIs in the form:
 
-`{prefix}:{RevitGUID}`. 
+Instance:   `{prefix}:{RevitGUID}`
+Class:      `{prefix}:{RevitTypeName}` (special characters removed and converted to PascalCase)
 
 The prefix can be set to anything but for them to work with the OPM-REST API, it should have the following form:
 
-`{host}/{projectNumber}/{discipline}/{type}/{id}`
+Instance:   `{host}/{projectNumber}/{discipline}/{type}/{id}`
+Class:      `{host}/{projectNumber}/{discipline}/ontology#{ClassName}`
 
 | Item          | Description                                                               | Example                  |
 | ------------- |:------------------------------------------------------------------------- | ------------------------ |
@@ -14,10 +16,12 @@ The prefix can be set to anything but for them to work with the OPM-REST API, it
 | projectNumber | The project number. This is also the name of the dataset on Fuseki.       | 105519                   |
 | discipline    | The discipline of the creator of the data (the source of the information) | arch / hvac / ict        |
 | type          | The type of the resource in plural. For Revit exports, use the Revit type name. | rooms / properties / states / levels |
-| id            | The id can in practice blot be a running number for each particular kind of item but for easier reference, the Revit GUID is preferred. | 2c391822-07f8-4a22-86a8-a1e574103a53-0002dd93 |
+| id            | The id can in practice just be a running number for each particular kind of item but for easier reference, the Revit GUID is preferred. | 2c391822-07f8-4a22-86a8-a1e574103a53-0002dd93 |
+| ClassName     | The class name must be unique. The Dynamo scripts generate these by 1) replacing "æ,ø,å" with "ae,oe,aa" 2) making it PascalCase 3) removing spacial characters and 4) URL encoding to be absolutely sure that it will be a valid URI |
 
-Example:
-`http://niras.dk/projects/105519/arch/walls/2c391822-07f8-4a22-86a8-a1e574103a53-0002dd93`
+Examples:
+Instance:   `http://niras.dk/projects/105519/arch/walls/2c391822-07f8-4a22-86a8-a1e574103a53-0002dd93`
+Class:      `http://niras.dk/projects/105519/arch/ontology#HeavyWall`
 
 ### 1. class-assignment
 The `class-assignment.dyn` Dynamo script does the following:
@@ -98,7 +102,7 @@ The `space-element-adjacency.dyn` Dynamo script does the following:
 ![space-element-adjacency image](./space-element-adjacency.png "space-element-adjacency image")
 
 ### 5. class-property-assignment
-Class properties are extracted exactly as instance properties but the OPM-REST API treats them differently as they are assigned as OWL property restrictions.
+Class properties are extracted in a similar way as instance properties except that the Python script retrieves and processes the class name. The OPM-REST API also treats them differently as they are assigned as OWL property restrictions.
 
 The `class-property-assignment.dyn` Dynamo script demonstrates how this is done wor wall types.
 
