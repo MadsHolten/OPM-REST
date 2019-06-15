@@ -29,9 +29,6 @@ module.exports = (app) => {
         // Get content type header
         const contentType = req.headers['content-type']
 
-        // Variable to hold the path of the temp file
-        var tempFilePath;
-
         // Handle text
         if(contentType == 'text/turtle'){
             const triples = req.body;
@@ -40,13 +37,12 @@ module.exports = (app) => {
             if(!triples) next({msg: "No triples recieved", status: 400})
 
             const fileName = Date.now().toString();
-            var tempFilePath = path.join(tempUploadFolder, fileName);
+            const tempFilePath = path.join(tempUploadFolder, fileName);
 
             // Write triples to a file
             try{
                 await writeFile(tempFilePath, triples)
             }catch(e){
-                console.log(e)
                 next({msg: e, status: 500})
             }
             
@@ -72,7 +68,7 @@ module.exports = (app) => {
                 if(err) next({msg: "File upload failed", status: 422})
 
                 // Get temp file path
-                var tempFilePath = path.join(tempUploadFolder, req.file.filename)
+                const tempFilePath = path.join(tempUploadFolder, req.file.filename)
 
                 // Do all the OPM stuff
                 try{
@@ -89,7 +85,7 @@ module.exports = (app) => {
 
 }
 
-var _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
+const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
 
     // Upload file to temp graph in triplestore
     await fuseki.loadFile(projNo, tempFilePath, tempGraphURI)
@@ -139,7 +135,7 @@ var _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
 
 }
 
-var _opmBatchCreate = (tempGraphURI, queryType) => {
+const _opmBatchCreate = (tempGraphURI, queryType) => {
 
     if(!queryType) queryType = "select";
 
@@ -178,7 +174,7 @@ var _opmBatchCreate = (tempGraphURI, queryType) => {
     return ldTools.appendPrefixesToQuery(q);
 }
 
-var _opmBatchUpdate = (tempGraphURI, queryType) => {
+const _opmBatchUpdate = (tempGraphURI, queryType) => {
     
     if(!queryType) queryType = "select";
 
