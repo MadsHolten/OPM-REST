@@ -4,7 +4,8 @@ const app = express();
 const fuseki = require('./helpers/fuseki-connection');
 
 // MIDDLEWARE
-app.use(bodyParser.json()); // Parse JSON
+app.use(bodyParser.json({ type: 'application/*+json' }));   // Parse JSON
+app.use(bodyParser.text({ type: 'text/turtle' }));          // Parse turtle
 
 // ROUTES
 
