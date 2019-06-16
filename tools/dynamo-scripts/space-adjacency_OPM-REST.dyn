@@ -2,7 +2,7 @@
   "Uuid": "3c9d0464-8643-5ffe-96e5-ab1769818209",
   "IsCustomNode": false,
   "Description": "",
-  "Name": "space-adjacency",
+  "Name": "space-adjacency_OPM-REST",
   "ElementResolver": {
     "ResolutionMap": {}
   },
@@ -217,25 +217,24 @@
       "Description": "Allows for DesignScript code to be authored directly"
     },
     {
-      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
-      "NodeType": "PythonScriptNode",
-      "Code": "import sys\r\nsys.path.append('C:\\Program Files (x86)\\IronPython 2.7\\Lib')\r\nimport httplib, urllib\r\n\r\n# The inputs to this node will be stored as a list in the IN variables.\r\nurl = IN[0]\r\ntriples = IN[1]\r\n\r\nfirst_slash = url.find('/')\r\nhost = url[:first_slash]\r\nroute = url[first_slash:]\r\n\r\nconn = httplib.HTTPConnection(host)\r\n\r\n# Define headers\r\nheaders = {\"Content-type\": \"text/turtle\", \"Accept\": \"text/plain\"}\r\n\r\n# Send request\r\nconn.request('POST', route, triples, headers)\r\n\r\n# Get response\r\nresponse = conn.getresponse()\r\n\r\n# Read response\r\ndata = response.read()\r\n\r\n# Close db connection\r\nconn.close()\r\n\r\n# Assign your output to the OUT variable.\r\nOUT = data",
-      "VariableInputPorts": true,
-      "Id": "f6042bd5c29746a69769253037491713",
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.IO.FileSystem.WriteText@string,string",
+      "Id": "2b09be75eb884612aef155038cf3fccc",
       "Inputs": [
         {
-          "Id": "21abbd5ef1d24d93ae6186f022b550a0",
-          "Name": "IN[0]",
-          "Description": "Input #0",
+          "Id": "a4980cc5cbc34920bd989a652aec7fed",
+          "Name": "filePath",
+          "Description": "Path to write to\n\nstring",
           "UsingDefaultValue": false,
           "Level": 2,
           "UseLevels": false,
           "KeepListStructure": false
         },
         {
-          "Id": "3894df8d7b7d4db7a94278ee3ab97cf4",
-          "Name": "IN[1]",
-          "Description": "Input #1",
+          "Id": "a3f467f204dc45b4a414f7107a047912",
+          "Name": "text",
+          "Description": "Text content\n\nstring",
           "UsingDefaultValue": false,
           "Level": 2,
           "UseLevels": false,
@@ -244,58 +243,30 @@
       ],
       "Outputs": [
         {
-          "Id": "f58db66a22d7402ab3084c39b800509f",
-          "Name": "OUT",
-          "Description": "Result of the python script",
+          "Id": "d407f0dd92c9453e85344c3c2c214c90",
+          "Name": "void",
+          "Description": "void",
           "UsingDefaultValue": false,
           "Level": 2,
           "UseLevels": false,
           "KeepListStructure": false
         }
       ],
-      "Replication": "Disabled",
-      "Description": "Runs an embedded IronPython script."
+      "Replication": "Auto",
+      "Description": "Write the text content to a file specified by the path\n\nFileSystem.WriteText (filePath: string, text: string): void"
     },
     {
-      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "ConcreteType": "CoreNodeModels.Input.Filename, CoreNodeModels",
+      "HintPath": "C:\\Users\\mhra\\Downloads\\test.ttl",
+      "InputValue": "..\\..\\..\\..\\..\\Downloads\\test.ttl",
       "NodeType": "ExtensionNode",
-      "Id": "7e7d9a92050e4adeb19ef4036c9a4a98",
-      "Inputs": [
-        {
-          "Id": "a3fe493d8b13497c9c4027a64ed56248",
-          "Name": "",
-          "Description": "Node to evaluate.",
-          "UsingDefaultValue": false,
-          "Level": 2,
-          "UseLevels": false,
-          "KeepListStructure": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Id": "6facb18f6cf14b73a10e9c86fc6ed2e3",
-          "Name": "",
-          "Description": "Watch contents.",
-          "UsingDefaultValue": false,
-          "Level": 2,
-          "UseLevels": false,
-          "KeepListStructure": false
-        }
-      ],
-      "Replication": "Disabled",
-      "Description": "Visualize the output of node."
-    },
-    {
-      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
-      "NodeType": "CodeBlockNode",
-      "Code": "\"localhost:3000/duplex/opm-upload/relationship-assignment\";",
-      "Id": "3a8920f6bfb54dd8acceebe9dbfd04e1",
+      "Id": "9c1296b66d96452895aae265ed03dae5",
       "Inputs": [],
       "Outputs": [
         {
-          "Id": "f704c0c87f484955bc894093d7b891c2",
+          "Id": "222f47c463bf4cf4994874e63b273bde",
           "Name": "",
-          "Description": "Value of expression at line 1",
+          "Description": "Filename",
           "UsingDefaultValue": false,
           "Level": 2,
           "UseLevels": false,
@@ -303,7 +274,7 @@
         }
       ],
       "Replication": "Disabled",
-      "Description": "Allows for DesignScript code to be authored directly"
+      "Description": "Allows you to select a file on the system to get its filename"
     }
   ],
   "Connectors": [
@@ -339,8 +310,8 @@
     },
     {
       "Start": "d56425e61dc5426d919838162981c26f",
-      "End": "3894df8d7b7d4db7a94278ee3ab97cf4",
-      "Id": "05a982ee1a954fbfa4004171279ab8a9"
+      "End": "a3f467f204dc45b4a414f7107a047912",
+      "Id": "ddfb6325e0224b09b178dcba82257d60"
     },
     {
       "Start": "c039fd1c8ef94a8a9668c05b1bf5d74f",
@@ -348,14 +319,9 @@
       "Id": "da44f53b44d94b768d5651356561c92b"
     },
     {
-      "Start": "f58db66a22d7402ab3084c39b800509f",
-      "End": "a3fe493d8b13497c9c4027a64ed56248",
-      "Id": "be096eec26e74ae182d622cfed4b0225"
-    },
-    {
-      "Start": "f704c0c87f484955bc894093d7b891c2",
-      "End": "21abbd5ef1d24d93ae6186f022b550a0",
-      "Id": "84bf3aaf895c4ebbbb4fcae0053b15b2"
+      "Start": "222f47c463bf4cf4994874e63b273bde",
+      "End": "a4980cc5cbc34920bd989a652aec7fed",
+      "Id": "870412ae031243c38f9ac1e7da636ec5"
     }
   ],
   "Dependencies": [
@@ -456,33 +422,23 @@
       },
       {
         "ShowGeometry": true,
-        "Name": "POST TO OPM-REST",
-        "Id": "f6042bd5c29746a69769253037491713",
+        "Name": "FileSystem.WriteText",
+        "Id": "2b09be75eb884612aef155038cf3fccc",
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 3740.390161205044,
-        "Y": -288.76245109018174
+        "X": 3599.6028795444904,
+        "Y": -292.95513533707486
       },
       {
         "ShowGeometry": true,
-        "Name": "Watch",
-        "Id": "7e7d9a92050e4adeb19ef4036c9a4a98",
+        "Name": "File Path",
+        "Id": "9c1296b66d96452895aae265ed03dae5",
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 3945.5214937135142,
-        "Y": -308.20137216622675
-      },
-      {
-        "ShowGeometry": true,
-        "Name": "Code Block",
-        "Id": "3a8920f6bfb54dd8acceebe9dbfd04e1",
-        "IsSetAsInput": false,
-        "IsSetAsOutput": false,
-        "Excluded": false,
-        "X": 3481.2757870011042,
-        "Y": -411.43933398814079
+        "X": 3417.7441279979903,
+        "Y": -370.75525983168183
       }
     ],
     "Annotations": [
@@ -524,20 +480,19 @@
         "Background": "#FFC1D676"
       },
       {
-        "Id": "8baec6eda8bd4469b01733c6378f7203",
-        "Title": "Write to server",
+        "Id": "631887a99f0747af89ecd85f3e96e851",
+        "Title": "Write to file",
         "Nodes": [
-          "3a8920f6bfb54dd8acceebe9dbfd04e1",
-          "f6042bd5c29746a69769253037491713",
-          "7e7d9a92050e4adeb19ef4036c9a4a98"
+          "2b09be75eb884612aef155038cf3fccc",
+          "9c1296b66d96452895aae265ed03dae5"
         ],
-        "Left": 3471.2757870011042,
-        "Top": -464.63933398814078,
-        "Width": 756.24570671241008,
-        "Height": 294.076882897959,
+        "Left": 3407.7441279979903,
+        "Top": -423.95525983168181,
+        "Width": 391.45875154650014,
+        "Height": 249.20012449460694,
         "FontSize": 36.0,
-        "InitialTop": -411.43933398814079,
-        "InitialHeight": 270.87688289795904,
+        "InitialTop": -370.75525983168183,
+        "InitialHeight": 226.00012449460695,
         "TextblockHeight": 43.2,
         "Background": "#FFFFC999"
       },

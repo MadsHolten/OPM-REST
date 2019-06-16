@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+<<<<<<< HEAD
     "run": "node index.js"
+=======
+    "start": "node index.js"
+>>>>>>> 960b0c4b4170d9af96c096bbab4e7cc55b661fc6
   },
   "keywords": [],
   "author": "Mads Holten Rasmussen",

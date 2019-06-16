@@ -7,7 +7,8 @@ const multer = require('multer')
 const util = require('util')
 const fs = require('fs')
 
-const deleteFile = util.promisify(fs.unlink);
+const deleteFile = util.promisify(fs.unlink)
+const writeFile = util.promisify(fs.writeFile)
 
 var upload = multer({
     dest: tempUploadFolder
@@ -22,34 +23,69 @@ module.exports = (app) => {
         const projNo = req.params.projNo
         var msg = 'Successfully assigned relationships';    // Default message
 
-        // Make URI for temp graph
-        const tempGraphURI = `${config.dataNamespace}/${projNo}/class-ass-temp`
+        // Get content type header
+        const contentType = req.headers['content-type']
 
-        // Get file content and load it in temp graph
-        upload(req, res, async (err) => {
+        // Handle text
+        if(contentType == 'text/turtle'){
+            const triples = req.body
 
-            // Throw error if no file recieved
-            if(!req.file) next({msg: "No file recieved", status: 400})
+            // Throw error if no data recieved
+            if(!triples) next({msg: "No triples recieved", status: 400})
 
-            // Throw error if upload fails
-            if(err) next({msg: "File upload failed", status: 422})
+            const fileName = Date.now().toString();
+            const tempFilePath = path.join(tempUploadFolder, fileName);
 
-            // Get temp file path
-            var tempFilePath = path.join(tempUploadFolder, req.file.filename)
+            // Write triples to a file
+            try{
+                await writeFile(tempFilePath, triples)
+            }catch(e){
+                next({msg: e, status: 500})
+            }
 
-            // Upload file to temp graph in triplestore
-            await fuseki.loadFile(projNo, tempFilePath, tempGraphURI)
+            try{
+                await _loadInStore(projNo, tempFilePath);
+                res.send(msg);
+            }catch(e){
+                next({msg: e.message, status: e.status})
+            }
+        }
 
-            // Delete temp file (returns promise)
-            var deleteTempPromise = deleteFile(tempFilePath)
+        // Handle file
+        else{
 
-            // Make sure temp file was deleted
-            await deleteTempPromise;
+            // Get file content and load it in temp graph
+            upload(req, res, async (err) => {
 
-            res.send(msg);
+                // Throw error if no file recieved
+                if(!req.file) next({msg: "No file recieved", status: 400})
 
-        })
+                // Throw error if upload fails
+                if(err) next({msg: "File upload failed", status: 422})
+
+                // Get temp file path
+                const tempFilePath = path.join(tempUploadFolder, req.file.filename)
+
+                try{
+                    await _loadInStore(projNo, tempFilePath);
+                    res.send(msg);
+                }catch(e){
+                    next({msg: e.message, status: e.status})
+                }
+            })
+        }
 
     })
 
+}
+
+const _loadInStore = async (projNo, tempFilePath, tempGraphURI) => {
+
+    // Upload file to the main graph
+    await fuseki.loadFile(projNo, tempFilePath)
+
+    // Delete temp file (returns promise)
+    await deleteFile(tempFilePath)
+
+    return;
 }
