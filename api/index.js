@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');     // To parse HTTP body element
 const app = express();
-const fuseki = require('./helpers/fuseki-connection')
 
 // MIDDLEWARE
 app.use(bodyParser.json()); // Parse JSON
