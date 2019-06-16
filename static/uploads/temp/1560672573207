@@ -1,12 +1,13 @@
-@prefix inst: <http://localhost:3000/duplex/arch/spaces/> .
-@prefix bot: <https://w3id.org/bot#> .
+@prefix ont: <http://localhost:3000/duplex/arch/ontology#> .
+@prefix props: <https://w3id.org/props#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-inst:0b74b3fa-1a92-405e-9ac9-d59067bce2dd-0002ff9f a bot:Space .
-inst:0b74b3fa-1a92-405e-9ac9-d59067bce2dd-0002ffa2 a bot:Space .
-inst:0b74b3fa-1a92-405e-9ac9-d59067bce2dd-0002ffa5 a bot:Space .
-inst:0b74b3fa-1a92-405e-9ac9-d59067bce2dd-0002ffa8 a bot:Space .
-inst:0b74b3fa-1a92-405e-9ac9-d59067bce2dd-0002ffb1 a bot:Space .
-inst:0b74b3fa-1a92-405e-9ac9-d59067bce2dd-0002ffb5 a bot:Space .
+ont:OutdoorsAir props:designAmbientTemperature "-12"^^xsd:decimal .
+ont:OutdoorsGround props:designAmbientTemperature "10"^^xsd:decimal .
+ont:HeatedRoom props:designAmbientTemperature "20"^^xsd:decimal ;
+    props:airFlowrateInfiltration "0.13"^^xsd:decimal .
+ont:UnheatedRoom props:designAmbientTemperature "15"^^xsd:decimal .
+ce .
 inst:0b74b3fa-1a92-405e-9ac9-d59067bce2dd-0002ffb8 a bot:Space .
 inst:0b74b3fa-1a92-405e-9ac9-d59067bce2dd-0002ffbb a bot:Space .
 inst:0b74b3fa-1a92-405e-9ac9-d59067bce2dd-000301fe a bot:Space .

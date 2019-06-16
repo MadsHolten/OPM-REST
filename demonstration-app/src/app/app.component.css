@@ -1,0 +1,21 @@
+.full-width{
+    width: 100%
+}
+.canvas-card{
+    margin: 5% 10% 0% 10%;
+}
+.code{
+    background-color: lightgray;
+    font-family: consolas;
+}
+.upload-ok{
+    color: green;
+    font-weight: 500;
+}
+.upload-fail{
+    color: red;
+    font-weight: 500;
+}
+p{
+    font-size: 1em;
+}

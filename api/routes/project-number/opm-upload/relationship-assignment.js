@@ -26,8 +26,11 @@ module.exports = (app) => {
         // Get content type header
         const contentType = req.headers['content-type']
 
+        // Set content-type of response
+        res.type('text/plain')
+
         // Handle text
-        if(contentType == 'text/turtle'){
+        if(contentType.indexOf('multipart/form-data') == -1){
             const triples = req.body
 
             // Throw error if no data recieved
@@ -79,7 +82,7 @@ module.exports = (app) => {
 
 }
 
-const _loadInStore = async (projNo, tempFilePath, tempGraphURI) => {
+const _loadInStore = async (projNo, tempFilePath) => {
 
     // Upload file to the main graph
     await fuseki.loadFile(projNo, tempFilePath)

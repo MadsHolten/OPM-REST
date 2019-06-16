@@ -1,13 +1,26 @@
 const express = require('express');
 const bodyParser = require('body-parser');     // To parse HTTP body element
+var cors = require('cors');                    // To allow Cross Origin requests
 const app = express();
 const fuseki = require('./helpers/fuseki-connection');
 
 // MIDDLEWARE
+app.use(bodyParser({limit: '500mb'}));
 app.use(bodyParser.json({ type: 'application/*+json' }));   // Parse JSON
 app.use(bodyParser.text({ type: 'text/turtle' }));          // Parse turtle
+app.use(cors());
 
 // ROUTES
+
+/**
+ * SPARQL routes
+ * 
+ * These basically mimic the Fuseki endpoints but add a layer where authentication can be handled
+ * 
+ * GET      /:projNo/query
+ */
+require('./routes/project-number/query').init(app);
+
 
 /**
  * OPM-upload routes
