@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
 import * as urljoin from 'url-join';
@@ -43,12 +43,12 @@ export class AppService {
     }
 
     public getCalculations(host, db): Observable<any>{
-        const url = urljoin(host, db, 'calculations');
+        const url = urljoin(host, db, 'ice', 'calculations');
         return this._http.get(url);
     }
 
     public postCalculation(host, db, body): Observable<any>{
-        const url = urljoin(host, db, 'calculations');
+        const url = urljoin(host, db, 'ice', 'calculations');
         return this._http.post(url, body);
     }
 

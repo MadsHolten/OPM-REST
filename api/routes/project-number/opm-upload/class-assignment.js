@@ -1,14 +1,15 @@
-const fuseki = require('../../../helpers/fuseki-connection')
-const config = require('../../../../config.json')
-const path = require('path')
-const uploadsFolder = path.join(__dirname, '../../../../static/uploads')
-const tempUploadFolder = path.join(uploadsFolder, '/temp')
-const multer = require('multer')
-const util = require('util')
-const fs = require('fs')
+const fuseki = require('../../../helpers/fuseki-connection');
+const config = require('../../../../config.json');
+const path = require('path');
+const uploadsFolder = path.join(__dirname, '../../../../static/uploads');
+const tempUploadFolder = path.join(uploadsFolder, '/temp');
+const multer = require('multer');
+const util = require('util');
+const fs = require('fs');
+const urljoin = require('url-join');
 
-const deleteFile = util.promisify(fs.unlink)
-const writeFile = util.promisify(fs.writeFile)
+const deleteFile = util.promisify(fs.unlink);
+const writeFile = util.promisify(fs.writeFile);
 
 var upload = multer({
     dest: tempUploadFolder
@@ -20,16 +21,16 @@ module.exports = (app) => {
     app.post('/:projNo/opm-upload/class-assignment', async (req, res, next) => {
 
         // Get data
-        const projNo = req.params.projNo
+        const projNo = req.params.projNo;
 
         // Make URI for temp graph
-        const tempGraphURI = `${config.dataNamespace}/${projNo}/class-ass-temp`
+        const tempGraphURI = urljoin(config.dataNamespace, projNo, 'class-ass-temp');
 
         // Get content type header
-        const contentType = req.headers['content-type']
+        const contentType = req.headers['content-type'];
 
         // Set content-type of response
-        res.type('text/plain')
+        res.type('text/plain');
 
         // Handle text
         if(contentType.indexOf('multipart/form-data') == -1){

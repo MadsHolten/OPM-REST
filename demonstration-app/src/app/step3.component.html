@@ -39,7 +39,7 @@
 
 <p>Once the calculations exist in the graph they can be retrieved from OPM-REST</p>
 <button mat-stroked-button (click)="getCalculations()">Get calculations</button>
-GET {{backend}}/{{db}}/calculations
+GET {{backend}}/{{db}}/ice/calculations
 
 <div *ngIf="calculations">
     <codemirror value="{{calculations | json}}" [config]="cmConfigJSON" class="full-width"></codemirror>

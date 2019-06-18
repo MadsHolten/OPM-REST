@@ -12,6 +12,7 @@
 </div>
 <div>
     <p *ngIf="!calculations">No calculations to show. Did you fulfill step 3?</p>
+    <button mat-stroked-button (click)="getCalculations()">Update</button>
 </div>
 
 <div *ngIf="calculations && calculations['@graph']">
@@ -46,6 +47,8 @@
 
             <button mat-stroked-button (click)="postSingle(item)">POST</button> POST {{item['@id']}}<br/>
             <button mat-stroked-button (click)="postSingle(item)">PUT</button>  PUT {{item['@id']}}
+
+            <p>Results inferred by this calculation:</p>
 
             <p>WIP! Get subscribers</p>
     

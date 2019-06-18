@@ -1,15 +1,16 @@
-const fuseki = require('../../../helpers/fuseki-connection')
-const ldTools = require('../../../helpers/ld-tools')
-const config = require('../../../../config.json')
-const path = require('path')
-const uploadsFolder = path.join(__dirname, '../../../../static/uploads')
-const tempUploadFolder = path.join(uploadsFolder, '/temp')
-const multer = require('multer')
-const util = require('util')
-const fs = require('fs')
+const fuseki = require('../../../helpers/fuseki-connection');
+const ldTools = require('../../../helpers/ld-tools');
+const config = require('../../../../config.json');
+const path = require('path');
+const uploadsFolder = path.join(__dirname, '../../../../static/uploads');
+const tempUploadFolder = path.join(uploadsFolder, '/temp');
+const multer = require('multer');
+const util = require('util');
+const fs = require('fs');
+const urljoin = require('url-join');
 
-const deleteFile = util.promisify(fs.unlink)
-const writeFile = util.promisify(fs.writeFile)
+const deleteFile = util.promisify(fs.unlink);
+const writeFile = util.promisify(fs.writeFile);
 
 var upload = multer({
     dest: tempUploadFolder
@@ -21,41 +22,41 @@ module.exports = (app) => {
     app.post('/:projNo/opm-upload/class-property-assignment', async (req, res, next) => {
 
         // Get data
-        const projNo = req.params.projNo
+        const projNo = req.params.projNo;
 
         // Make URI for temp graph
-        const tempGraphURI = `${config.dataNamespace}/${projNo}/class-ass-temp`
+        const tempGraphURI = urljoin(config.dataNamespace, projNo, 'class-prop-ass-temp');
 
         // Get content type header
-        const contentType = req.headers['content-type']
+        const contentType = req.headers['content-type'];
 
         // Set content-type of response
-        res.type('text/plain')
+        res.type('text/plain');
 
         // Handle text
         if(contentType.indexOf('multipart/form-data') == -1){
             const triples = req.body;
 
             // Throw error if no data recieved
-            if(!triples) next({msg: "No triples recieved", status: 400})
+            if(!triples) next({msg: "No triples recieved", status: 400});
 
             const fileName = Date.now().toString();
-            const tempFilePath = path.join(tempUploadFolder, fileName)
+            const tempFilePath = path.join(tempUploadFolder, fileName);
 
             // Write triples to a file
             try{
-                await writeFile(tempFilePath, triples)
+                await writeFile(tempFilePath, triples);
             }catch(e){
-                console.log(e)
-                next({msg: e, status: 500})
+                console.log(e);
+                next({msg: e, status: 500});
             }
             
             // Do all the OPM stuff
             try{
-                const msg = await _opmMain(projNo, tempFilePath, tempGraphURI)
-                res.send(msg)
+                const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
+                res.send(msg);
             }catch(e){
-                next({msg: e.message, status: e.status})
+                next({msg: e.message, status: e.status});
             }
         }
 
@@ -66,20 +67,20 @@ module.exports = (app) => {
             upload(req, res, async (err) => {
 
                 // Throw error if no file recieved
-                if(!req.file) next({msg: "No file recieved", status: 400})
+                if(!req.file) next({msg: "No file recieved", status: 400});
 
                 // Throw error if upload fails
-                if(err) next({msg: "File upload failed", status: 422})
+                if(err) next({msg: "File upload failed", status: 422});
 
                 // Get temp file path
-                const tempFilePath = path.join(tempUploadFolder, req.file.filename)
+                const tempFilePath = path.join(tempUploadFolder, req.file.filename);
 
                 // Do all the OPM stuff
                 try{
                     const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
-                    res.send(msg)
+                    res.send(msg);
                 }catch(e){
-                    next({msg: e.message, status: e.status})
+                    next({msg: e.message, status: e.status});
                 }
 
             })
@@ -92,19 +93,20 @@ module.exports = (app) => {
 
 const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
 
-    var countNew = 0
-    var countUpdated = 0
+    var countNew = 0;
+    var countUpdated = 0;
 
     // Upload file to temp graph in triplestore
-    await fuseki.loadFile(projNo, tempFilePath, tempGraphURI)
+    await fuseki.loadFile(projNo, tempFilePath, tempGraphURI);
 
     // Delete temp file (returns promise)
-    var deleteTempPromise = deleteFile(tempFilePath)
+    var deleteTempPromise = deleteFile(tempFilePath);
 
     // Query to count the number of new properties that will be created
-    var q = _opmBatchClassCreate(tempGraphURI, 'select')
+    var q = _opmBatchClassPropertyCreate(tempGraphURI, 'select');
+    console.log(q)
     try{
-        var x = await fuseki.getQuery(projNo, q)
+        var x = await fuseki.getQuery(projNo, q);
         countNew = x.results.bindings.length
     }catch(e){
         next({msg: e.message, status: e.status})
@@ -121,7 +123,7 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
 
     if(countNew != 0){
         // Insert new properties
-        q = _opmBatchClassCreate(tempGraphURI, 'insert')
+        q = _opmBatchClassPropertyCreate(tempGraphURI, 'insert')
         console.log(q)
         try{
             await fuseki.updateQuery(projNo,q)
@@ -151,7 +153,7 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
 
 }
 
-const _opmBatchClassCreate = (tempGraphURI, queryType) => {
+const _opmBatchClassPropertyCreate = (tempGraphURI, queryType) => {
 
     if(!queryType) queryType = "select"
 

@@ -24,14 +24,6 @@ require('./routes/project-number/query').init(app);
 require('./routes/project-number/update').init(app);
 
 /**
- * OPM CALC routes
- * 
- * GET      /:projNo/calculations
- * 
- */
-require('./routes/project-number/calculations').init(app);
-
-/**
  * OPM-upload routes
  * 
  * POST     /:projNo/opm-upload/class-assignment
@@ -46,6 +38,17 @@ require('./routes/project-number/opm-upload').classCreate(app);
 require('./routes/project-number/opm-upload').propertyAssignment(app);
 require('./routes/project-number/opm-upload').relationshipAssignment(app);
 require('./routes/project-number/opm-upload').classPropertyAssignment(app);
+
+/**
+ * OPM CALC routes
+ * 
+ * GET      /:projNo/:discipline/calculations
+ * POST     /:projNo/:discipline/calculations
+ * POST     /:projNo/:discipline/calculations/:id
+ * PUT      /:projNo/:discipline/calculations/:id
+ * 
+ */
+require('./routes/project-number/discipline/calculations').init(app);
 
 /**
  * Resource type routes

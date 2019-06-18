@@ -1,5 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { AppData } from './app.data';
+import { HttpClient } from '@angular/common/http';
 import { AppService } from './app.service';
 import 'codemirror/mode/turtle/turtle';
 import 'codemirror/mode/javascript/javascript';
@@ -30,7 +31,8 @@ export class Step4Component implements OnInit {
 
     constructor(
         private _ad: AppData,
-        private _as: AppService
+        private _as: AppService,
+        private _http: HttpClient
     ) { }
 
     ngOnInit(): void {
@@ -55,6 +57,16 @@ export class Step4Component implements OnInit {
 
     public postSingle(item){
         const url = item['@id'];
+        this._http.post(url,{}).subscribe(res => {
+            console.log(res)
+        }, err => console.log(err))
+    }
+
+    public putSingle(item){
+        const url = item['@id'];
+        this._http.put(url,{}).subscribe(res => {
+            console.log(res)
+        }, err => console.log(err))
     }
 
 }

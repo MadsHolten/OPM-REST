@@ -7,6 +7,7 @@ const tempUploadFolder = path.join(uploadsFolder, '/temp')
 const multer = require('multer')
 const util = require('util')
 const fs = require('fs')
+const urljoin = require('url-join');
 
 const deleteFile = util.promisify(fs.unlink)
 const writeFile = util.promisify(fs.writeFile)
@@ -24,7 +25,7 @@ module.exports = (app) => {
         const projNo = req.params.projNo
 
         // Make URI for temp graph
-        const tempGraphURI = `${config.dataNamespace}/${projNo}/class-ass-temp`
+        const tempGraphURI = urljoin(config.dataNamespace, projNo, 'prop-ass-temp');
 
         // Get content type header
         const contentType = req.headers['content-type']
