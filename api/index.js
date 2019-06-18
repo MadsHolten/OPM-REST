@@ -65,7 +65,7 @@ app.use((err, req, res, next) => {
     if(err){
         const msg = err.msg ? err.msg : "Something went wrong";
         const status = err.status ? err.status : 500;
-        res.status(status).send({error: msg});
+        res.status(status).send({errors: msg});
     }
 });
 
