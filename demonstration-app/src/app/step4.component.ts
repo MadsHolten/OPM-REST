@@ -47,4 +47,14 @@ export class Step4Component implements OnInit {
         }, err => console.log(err))
     }
 
+    public postAll(){
+        this.calculations['@graph'].forEach(item => {
+            this.postSingle(item);
+        })
+    }
+
+    public postSingle(item){
+        const url = item['@id'];
+    }
+
 }

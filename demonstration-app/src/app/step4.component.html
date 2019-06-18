@@ -25,7 +25,27 @@
             </mat-panel-title>
             </mat-expansion-panel-header>
 
-            <p>{{item.comment['@value']}}</p>
+            <table>
+                <tr>
+                    <td>prov:generatedAtTime</td>
+                    <td>{{item.generatedAtTime}}</td>
+                </tr>
+                <tr>
+                    <td>rdfs:comment</td>
+                    <td>{{item.comment}}</td>
+                </tr>
+                <tr>
+                    <td>opm:expression</td>
+                    <td>{{item.expression}}</td>
+                </tr>
+                <tr>
+                    <td>opm:inferredProperty</td>
+                    <td>{{item.inferredProperty}}</td>
+                </tr>
+            </table>
+
+            <button mat-stroked-button (click)="postSingle(item)">POST</button> POST {{item['@id']}}<br/>
+            <button mat-stroked-button (click)="postSingle(item)">PUT</button>  PUT {{item['@id']}}
 
             <p>WIP! Get subscribers</p>
     

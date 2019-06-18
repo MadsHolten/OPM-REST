@@ -61,4 +61,24 @@ module.exports = (app) => {
 
     })
 
+    // CREATE A CALCULATION
+    app.post('/:projNo/calculations/:id', async (req, res, next) => {
+
+        const projNo = req.params.projNo;
+        const id = req.params.id;
+
+        res.send({msg: 'WIP: POST calc'})
+
+    })
+
+    // CREATE A CALCULATION
+    app.put('/:projNo/calculations/:id', async (req, res, next) => {
+
+        const projNo = req.params.projNo;
+        const id = req.params.id;
+
+        res.send({msg: 'WIP: PUT calc'})
+
+    })
+
 }
