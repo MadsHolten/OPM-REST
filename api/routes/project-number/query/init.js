@@ -10,10 +10,12 @@ module.exports = (app) => {
 
         // Get query params
         const query = req.query.query;
+        var mimeType = req.query.mimeType ? req.query.mimeType : 'application/sparql-results+json';
 
-        var mimeType = 'application/sparql-results+json';
-        if(query.toLowerCase().indexOf('construct') != -1) mimeType = 'application/ld+json';
-        
+        console.log(mimeType)
+
+        if(query.toLowerCase().indexOf('construct') != -1 && mimeType == 'application/sparql-results+json') mimeType = 'application/ld+json';
+
         try{
             var qRes = await fuseki.getQuery(projNo, query, mimeType);
             res.send(qRes);

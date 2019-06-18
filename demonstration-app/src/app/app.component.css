@@ -2,7 +2,8 @@
     width: 100%
 }
 .canvas-card{
-    margin: 5% 10% 0% 10%;
+    margin: 1vw 10vw 1vw 10vw;
+    padding: 30px;
 }
 .code{
     background-color: lightgray;
@@ -18,4 +19,8 @@
 }
 p{
     font-size: 1em;
+}
+button{
+    margin-top: 10px;
+    margin-bottom: 10px;
 }

@@ -8,15 +8,26 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import {  MatStepperModule, MatInputModule, 
           MatFormFieldModule, MatCardModule,
-          MatExpansionModule, MatButtonModule } from '@angular/material';
+          MatExpansionModule, MatButtonModule,
+          MatSlideToggleModule, MatTooltipModule } from '@angular/material';
 
 import { AppService } from './app.service';
+import { AppData } from './app.data';
 
 import { CodemirrorModule } from 'ng2-codemirror';
 
+import { Step1Component } from './step1.component';
+import { Step2Component } from './step2.component';
+import { Step3Component } from './step3.component';
+import { Step4Component } from './step4.component';
+
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    Step1Component,
+    Step2Component,
+    Step3Component,
+    Step4Component
   ],
   imports: [
     BrowserModule,
@@ -29,10 +40,13 @@ import { CodemirrorModule } from 'ng2-codemirror';
     MatCardModule,
     MatExpansionModule,
     MatButtonModule,
-    CodemirrorModule
+    CodemirrorModule,
+    MatSlideToggleModule,
+    MatTooltipModule
   ],
   providers: [
-    AppService
+    AppService,
+    AppData
   ],
   bootstrap: [AppComponent]
 })

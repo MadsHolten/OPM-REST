@@ -1,8 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');     // To parse HTTP body element
-var cors = require('cors');                    // To allow Cross Origin requests
+const cors = require('cors');                    // To allow Cross Origin requests
 const app = express();
-const fuseki = require('./helpers/fuseki-connection');
 
 // MIDDLEWARE
 app.use(bodyParser({limit: '500mb'}));
@@ -18,9 +17,19 @@ app.use(cors());
  * These basically mimic the Fuseki endpoints but add a layer where authentication can be handled
  * 
  * GET      /:projNo/query
+ * GET      /:projNo/update
+ * 
  */
 require('./routes/project-number/query').init(app);
+require('./routes/project-number/update').init(app);
 
+/**
+ * OPM CALC routes
+ * 
+ * GET      /:projNo/calculations
+ * 
+ */
+require('./routes/project-number/calculations').init(app);
 
 /**
  * OPM-upload routes
@@ -30,6 +39,7 @@ require('./routes/project-number/query').init(app);
  * POST     /:projNo/opm-upload/property-assignment
  * POST     /:projNo/opm-upload/relationship-assignment
  * POST     /:projNo/opm-upload/class-property-assignment
+ * 
  */
 require('./routes/project-number/opm-upload').classAssignment(app);
 require('./routes/project-number/opm-upload').classCreate(app);
@@ -43,6 +53,7 @@ require('./routes/project-number/opm-upload').classPropertyAssignment(app);
  * GET      /:projNo/:discipline/:type          Returns all instances of the given type (uses typeMappings in config.json)
  * POST     /:projNo/:discipline/:type          Creates a new instance of the given type and returns the URI of the new resource (uses typeMappings in config.json)
  * GET      /:projNo/:discipline/:type/:id      Returns a specific element and its relationships to other elements
+ * 
  */
 require('./routes/project-number/discipline/type').init(app);
 
