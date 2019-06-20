@@ -7,7 +7,7 @@ const jsonld = require('jsonld');
 
 module.exports = (app) => {
 
-    // GET CALCULATION
+    // GET CALCULATIONS
     app.get('/:projNo/:discipline/calculations', async (req, res, next) => {
 
         // Get URL params
@@ -26,6 +26,26 @@ module.exports = (app) => {
         }
 
     })
+
+    // GET OUTDATED CALCULATIONS
+    app.get('/:projNo/:discipline/calculations/outdated', async (req, res, next) => {
+
+        // Get URL params
+        const projNo = req.params.projNo;
+        const discipline = req.params.discipline;
+        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+
+        const opmCalc = new OPMCalc(namespace, config.prefixes);
+        const q = opmCalc.getOutdated();
+        
+        try{
+            var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
+            res.send(qRes);
+        }catch(e){
+            next({msg: e.message, status: e.status});
+        }
+
+    });
 
     // CREATE A CALCULATION
     app.post('/:projNo/:discipline/calculations',[
@@ -65,64 +85,128 @@ module.exports = (app) => {
 
     })
 
-    // CREATE A CALCULATION
-    app.post('/:projNo/:discipline/calculations/:id', async (req, res, next) => {
+    // GET SPECIFIC CALCULATION
+    app.get('/:projNo/:discipline/calculations/:id', async (req, res, next) => {
 
+        // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
         const id = req.params.id;
         const namespace = urljoin(config.dataNamespace, projNo, discipline);
         const calculationURI = urljoin(namespace, 'calculations', id);
 
-        // Generate query with opmCalc
-        const opmCalc = new OPMCalc(namespace, config.namespaces);
-        var query;
+        const opmCalc = new OPMCalc(namespace);
+        const q = opmCalc.getCalcData(calculationURI);
+        
         try{
-            query = opmCalc.getCalcData({calculationURI});
+            var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
+            res.send(qRes);
         }catch(e){
-            console.log(e)
+            next({msg: e.message, status: e.status});
         }
-
-        var calcData;
-        try{
-            var qRes = await fuseki.getQuery(projNo, query, 'application/ld+json');
-            calcData = await _transformRes(qRes);
-            calcData.calculationURI = calculationURI;
-            calcData.queryType = 'construct';
-        }catch(e){
-            console.log(e)
-        }
-
-        try{
-            query = opmCalc.postCalc(calcData);
-        }catch(e){
-            console.log(e);
-        }
-
-        console.log(query)
-
-        try{
-            var inserted = await fuseki.getQuery(projNo, query, 'application/ld+json');
-            res.send(inserted);
-        }catch(e){
-            console.log(e)
-        }
-
-        // res.send(q);
-
-        // const calcData = _getCalcData();
-
-        // res.send({msg: 'WIP: POST calc'})
 
     })
 
-    // CREATE A CALCULATION
-    app.put('/:projNo/:discipline/calculations/:id', async (req, res, next) => {
+    // APPEND CALCULATION
+    app.post('/:projNo/:discipline/calculations/:id', async (req, res, next) => {
 
+        // URL params
         const projNo = req.params.projNo;
+        const discipline = req.params.discipline;
         const id = req.params.id;
 
-        res.send({msg: 'WIP: PUT calc'})
+        // Query params
+        const materialize = req.query.materialize;
+
+        // Build URI and initialize OPMCalc
+        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const calculationURI = urljoin(namespace, 'calculations', id);
+        const opmCalc = new OPMCalc(namespace, config.namespaces);
+
+        // Get calculation data
+        var calcData;
+        try{
+            var query = opmCalc.getCalcData({calculationURI});
+            var qRes = await fuseki.getQuery(projNo, query, 'application/ld+json');
+            calcData = await _transformRes(qRes);
+            calcData.calculationURI = calculationURI;
+        }catch(e){
+            console.log(e)
+        }
+
+        // Append calculation and return 
+        try{
+            if(materialize){
+                // Count number of results
+                calcData.queryType = 'count';
+                query = opmCalc.postCalc(calcData);
+                var count = await fuseki.getQuery(projNo, query);
+                count = count.results.bindings[0].count.value;
+                var msg = count == 0 ? 'There were no new calculation results to insert' : `successfully inserted ${count} calculation results.`;
+
+                // Append
+                calcData.queryType = 'insert';
+                query = opmCalc.postCalc(calcData);
+                await fuseki.updateQuery(projNo, query);
+
+                res.send({msg});
+            }else{
+                calcData.queryType = 'construct';
+                query = opmCalc.postCalc(calcData);
+                var inserted = await fuseki.getQuery(projNo, query, 'application/ld+json');
+                res.send(inserted);
+            }
+        }catch(e){
+            console.log(e)
+        }
+
+    })
+
+    // RE-APPNED CALCULATION
+    app.put('/:projNo/:discipline/calculations/:id', async (req, res, next) => {
+
+        // URL params
+        const projNo = req.params.projNo;
+        const discipline = req.params.discipline;
+        const id = req.params.id;
+
+        // Query params
+        const materialize = req.query.materialize;
+
+        // Build URI and initialize OPMCalc
+        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const calculationURI = urljoin(namespace, 'calculations', id);
+        const opmCalc = new OPMCalc(namespace, config.namespaces);
+
+        // Get calculation data
+        var calcData;
+        try{
+            var query = opmCalc.getCalcData({calculationURI});
+            var qRes = await fuseki.getQuery(projNo, query, 'application/ld+json');
+            calcData = await _transformRes(qRes);
+            calcData.calculationURI = calculationURI;
+        }catch(e){
+            console.log(e)
+        }
+
+        // Re-append calculation and return 
+        try{
+            if(materialize){
+                // Append
+                calcData.queryType = 'insert';
+                query = opmCalc.putCalc(calcData);
+                await fuseki.updateQuery(projNo, query);
+
+                res.send({msg: 'Successfully updated calculations.'});
+            }else{
+                calcData.queryType = 'construct';
+                query = opmCalc.putCalc(calcData);
+                var inserted = await fuseki.getQuery(projNo, query, 'application/ld+json');
+                res.send(inserted);
+            }
+        }catch(e){
+            console.log(e)
+        }
 
     })
 

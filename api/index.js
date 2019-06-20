@@ -40,7 +40,15 @@ require('./routes/project-number/opm-upload').relationshipAssignment(app);
 require('./routes/project-number/opm-upload').classPropertyAssignment(app);
 
 /**
- * OPM CALC routes
+ * OPM PROPERTY routes
+ * 
+ * GET      /:projNo/:discipline/properties
+ * 
+ */
+require('./routes/project-number/discipline/properties').init(app);
+
+/**
+ * OPM CALCULATION routes
  * 
  * GET      /:projNo/:discipline/calculations
  * POST     /:projNo/:discipline/calculations

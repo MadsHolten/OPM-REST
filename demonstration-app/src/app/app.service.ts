@@ -52,4 +52,9 @@ export class AppService {
         return this._http.post(url, body);
     }
 
+    public getOutdated(host, db): Observable<any>{
+        const url = urljoin(host, db, 'ice', 'calculations', 'outdated');
+        return this._http.get(url);
+    }
+
 }

@@ -48,6 +48,7 @@
         <codemirror [value]="getSpaceEnvelopeQuery" [config]="cmConfigSPARQL"></codemirror>
         <button mat-stroked-button (click)="getSpaceEnvelopeTriples()" style="margin-bottom: 10px;">Get spaces + envelope</button>
 
+        <p *ngIf="spaceEnvelopeCount">Found {{spaceEnvelopeCount}} envelope segments</p>
         <codemirror *ngIf="spaceEnvelopeTriples" [value]="spaceEnvelopeTriples" [config]="cmConfigJSON"></codemirror>
       </div>
 

@@ -15,11 +15,11 @@
     <button mat-stroked-button (click)="getCalculations()">Update</button>
 </div>
 
-<div *ngIf="calculations && calculations['@graph']">
+<div *ngIf="calculations">
 
     <mat-accordion>
 
-        <mat-expansion-panel *ngFor="let item of calculations['@graph']">
+        <mat-expansion-panel *ngFor="let item of calculations">
             <mat-expansion-panel-header>
             <mat-panel-title>
                 <span>{{item.label['@value']}}</span>
@@ -45,8 +45,20 @@
                 </tr>
             </table>
 
-            <button mat-stroked-button (click)="postSingle(item)">POST</button> POST {{item['@id']}}<br/>
-            <button mat-stroked-button (click)="postSingle(item)">PUT</button>  PUT {{item['@id']}}
+            <mat-slide-toggle
+                style="padding-top: 10px"
+                [(ngModel)]="materialize"
+                matTooltip="Clicking the materialize button will write the triples to the store"
+                >Materialize
+            </mat-slide-toggle>
+            <br/>
+            <button mat-stroked-button (click)="postSingle(item)">POST</button> POST {{item['@id']}}
+            <br/>
+            <button mat-stroked-button (click)="putSingle(item)">PUT</button>  PUT {{item['@id']}}
+
+            <div *ngIf="item.result">
+                <codemirror value="{{item.result | json}}" [config]="cmConfigJSON" class="full-width"></codemirror>
+            </div>
 
             <p>Results inferred by this calculation:</p>
 
@@ -75,7 +87,14 @@
             </div> -->
     
         </mat-expansion-panel>
+
+        <p>Exercise: change some of the dependencies of the calculations (eg. the ambient temperature of the heated room class) and check for outdated calculations.</p>
     
+        <button mat-stroked-button (click)="getOutdated()">List outdated</button> GET {{backend}}/{{db}}/ice/calculations/outdated
+        <div *ngIf="outdated">
+            <codemirror value="{{outdated | json}}" [config]="cmConfigJSON" class="full-width"></codemirror>
+        </div>
+
     </mat-accordion>
 
 </div>

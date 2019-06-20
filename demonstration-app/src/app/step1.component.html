@@ -20,7 +20,7 @@
     <p>Uses the <span class="code">opm-upload/{{item.endpoint}}</span> route of OPM-REST</p>
     <p *ngIf="item.dynamoScript">The triples were generated using the {{item.dynamoScript}} Dynamo script.</p>
     
-    <codemirror [ngModel]="item.triples" [config]="cmConfigTTL" class="full-width"></codemirror>
+    <codemirror [(ngModel)]="item.triples" [config]="cmConfigTTL" class="full-width"></codemirror>
 
     <button mat-stroked-button (click)="uploadSingle(item)">Load in store</button> 
     <p *ngIf="item.response">OPM-REST response: <span class="code">{{item.response}}</span></p>
@@ -48,7 +48,7 @@
     <p>{{item.description}}</p>
     <p>Uses the <span class="code">opm-upload/{{item.endpoint}}</span> route of OPM-REST</p>
     
-    <codemirror [ngModel]="item.triples" [config]="TTL" class="full-width"></codemirror>
+    <codemirror [(ngModel)]="item.triples" [config]="TTL" class="full-width"></codemirror>
 
     <button mat-stroked-button (click)="uploadSingle(item)">Load in store</button> 
     <p *ngIf="item.response">OPM-REST response: <span class="code">{{item.response}}</span></p>

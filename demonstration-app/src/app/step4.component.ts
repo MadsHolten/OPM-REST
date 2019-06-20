@@ -28,6 +28,8 @@ export class Step4Component implements OnInit {
     public cmConfigSPARQL = this.cmConfigTTL;
 
     public calculations;
+    public outdated;
+    public materialize;
 
     constructor(
         private _ad: AppData,
@@ -45,7 +47,8 @@ export class Step4Component implements OnInit {
     public getCalculations(){
         this._as.getCalculations(this.backend, this.db).subscribe(res => {
             console.log(res);
-            this.calculations = res;
+            this.calculations = res['@graph'] ? res['@graph'] : [res];
+            console.log(this.calculations);
         }, err => console.log(err))
     }
 
@@ -57,15 +60,32 @@ export class Step4Component implements OnInit {
 
     public postSingle(item){
         const url = item['@id'];
-        this._http.post(url,{}).subscribe(res => {
-            console.log(res)
-        }, err => console.log(err))
+        const params = this.materialize ? {materialize: true} : {};
+        this._http.post(url, {params}).subscribe(res => {
+            item.result = res;
+        }, 
+        err => {
+            console.log(err)
+            item.result = err;
+        })
     }
 
     public putSingle(item){
         const url = item['@id'];
+        const params = this.materialize ? {materialize: true} : {};
         this._http.put(url,{}).subscribe(res => {
             console.log(res)
+            item.result = res;
+        }, 
+        err => {
+            console.log(err)
+            item.result = err;
+        })
+    }
+
+    public getOutdated(){
+        this._as.getOutdated(this.backend, this.db).subscribe(res => {
+            this.outdated = res;
         }, err => console.log(err))
     }
 

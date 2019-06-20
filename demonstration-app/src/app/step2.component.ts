@@ -34,6 +34,7 @@ export class Step2Component implements OnInit {
     public getSpaceEnvelopeQuery: string = this._ad.getSpaceEnvelopeQuery;
     public spaceEnvelopeTriples: string;
     public getSpaceEnvelopeStatus: string;
+    public spaceEnvelopeCount: number;
 
     constructor(
         private _ad: AppData,
@@ -71,27 +72,32 @@ export class Step2Component implements OnInit {
 
     this._as.getQuery(this.backend, this.db, this.getSpaceEnvelopeQuery).subscribe(res => {
 
+        // Count number of interfaces
+        var counter = 0;
+
         // Create tree structure
         var formatted = [];
         const root = res['@graph'];
 
         root.forEach(item => {
-        if(item['@type'].includes('bot:Space')){
-            if(item.hasEnvelope){
-            var envelope = [];
-            item.hasEnvelope.forEach(envURI => {
-                var envProps = root.find(x => x['@id'] == envURI);
-                envelope.push(envProps);
-            })
-            item.hasEnvelope = envelope;
-            formatted.push(item);
+            if(item['@type'].includes('bot:Space')){
+                if(item.hasEnvelope){
+                var envelope = [];
+                item.hasEnvelope.forEach(envURI => {
+                    counter++;
+                    var envProps = root.find(x => x['@id'] == envURI);
+                    envelope.push(envProps);
+                })
+                item.hasEnvelope = envelope;
+                formatted.push(item);
+                }
             }
-        }
         })
 
         // Update to new structure and update public var
         res['@graph'] = formatted;
         this.spaceEnvelopeTriples = JSON.stringify(res, null, 2);
+        this.spaceEnvelopeCount = counter;
 
     }, err => {
         this.getSpaceEnvelopeStatus = err;

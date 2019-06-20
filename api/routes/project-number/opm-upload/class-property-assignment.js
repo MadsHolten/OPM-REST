@@ -104,9 +104,9 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
 
     // Query to count the number of new properties that will be created
     var q = _opmBatchClassPropertyCreate(tempGraphURI, 'select');
-    console.log(q)
     try{
         var x = await fuseki.getQuery(projNo, q);
+        console.log(x)
         countNew = x.results.bindings.length
     }catch(e){
         next({msg: e.message, status: e.status})
@@ -114,8 +114,10 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
 
     // Query to count the number of properties that will be updated
     var q = _opmBatchClassUpdate(tempGraphURI, 'select')
+    console.log(q);
     try{
         var x = await fuseki.getQuery(projNo, q)
+        console.log(x)
         countUpdated = x.results.bindings.length
     }catch(e){
         next({msg: e.message, status: e.status})
@@ -124,7 +126,6 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
     if(countNew != 0){
         // Insert new properties
         q = _opmBatchClassPropertyCreate(tempGraphURI, 'insert')
-        console.log(q)
         try{
             await fuseki.updateQuery(projNo,q)
         }catch(e){
