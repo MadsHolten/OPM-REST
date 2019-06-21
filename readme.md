@@ -1,15 +1,16 @@
 ## INSTALL
 
-In order to run the API you need to have [NodeJS](https://nodejs.org/en/).
+Steps to run the OPM-REST backend:
 
-1. Clone repository
-2. run command `npm install`
-3. install Jena Fuseki and run it on port 3030
-4. check `config.json` and edit if using another triplestore endpoint
-5. run OPM-REST with command `npm start`
+1. install [NodeJS](https://nodejs.org/en/)
+2. Clone repository
+3. run command `npm install` in the repository
+4. deploy a SPARQL 1.1 Protocol server, for example deploying (Fuseki as a Docker container)[https://hub.docker.com/r/stain/jena-fuseki/]
+5. check `config.json` and edit if using according to your SPARQL 1.1 Protocol server
+6. run command `npm start` to start OPM-REST (should run on port 3000)
 
 ## USE
 
 1. Create a new dataset in Fuseki called `duplex`
-2. Load Duplex house in (./app/static/Duplex.ttl)
-3. Use cURL or Postman to check that you recieve some data on `{HOST}/duplex/arch/rooms` (`http://localhost:3000/duplex/arch/rooms`)
+2. Load the Knowledge Graph of a duplex house in `./app/static/Duplex.ttl`
+3. Check everything is fine by issuing a HTTP GET request at `http://localhost:3000/duplex/arch/rooms`
