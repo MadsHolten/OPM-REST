@@ -4,8 +4,8 @@ import { AppService } from './app.service';
 import 'codemirror/mode/turtle/turtle';
 import 'codemirror/mode/javascript/javascript';
 import 'codemirror/mode/sparql/sparql';
-import { OPMCalc } from '../../../../opm-qg/dist'
-// import { OPMCalc } from 'opm-qg';
+// import { OPMCalc } from '../../../../opm-qg/dist'
+import { OPMCalc } from 'opm-qg';
 import * as urljoin from 'url-join';
 
 @Component({
