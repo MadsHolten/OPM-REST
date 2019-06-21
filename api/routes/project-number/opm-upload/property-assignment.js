@@ -7,8 +7,10 @@ const tempUploadFolder = path.join(uploadsFolder, '/temp')
 const multer = require('multer')
 const util = require('util')
 const fs = require('fs')
+const urljoin = require('url-join');
 
-const deleteFile = util.promisify(fs.unlink);
+const deleteFile = util.promisify(fs.unlink)
+const writeFile = util.promisify(fs.writeFile)
 
 var upload = multer({
     dest: tempUploadFolder
@@ -21,86 +23,123 @@ module.exports = (app) => {
 
         // Get data
         const projNo = req.params.projNo
-        var msg
 
         // Make URI for temp graph
-        const tempGraphURI = `${config.dataNamespace}/${projNo}/class-ass-temp`
+        const tempGraphURI = urljoin(config.dataNamespace, projNo, 'prop-ass-temp');
 
-        // Get file content and load it in temp graph
-        upload(req, res, async (err) => {
+        // Get content type header
+        const contentType = req.headers['content-type']
 
-            // Throw error if no file recieved
-            if(!req.file) next({msg: "No file recieved", status: 400})
+        // Set content-type of response
+        res.type('text/plain')
 
-            // Throw error if upload fails
-            if(err) next({msg: "File upload failed", status: 422})
+        // Handle text
+        if(contentType.indexOf('multipart/form-data') == -1){
+            const triples = req.body;
 
-            // Get temp file path
-            var tempFilePath = path.join(tempUploadFolder, req.file.filename)
+            // Throw error if no data recieved
+            if(!triples) next({msg: "No triples recieved", status: 400})
 
-            // Upload file to temp graph in triplestore
-            await fuseki.loadFile(projNo, tempFilePath, tempGraphURI)
+            const fileName = Date.now().toString();
+            const tempFilePath = path.join(tempUploadFolder, fileName);
 
-            // Delete temp file (returns promise)
-            var deleteTempPromise = deleteFile(tempFilePath)
-
-            // Query to count the number of new properties that will be created
-            var q = _opmBatchCreate(tempGraphURI, 'select')
-
+            // Write triples to a file
             try{
-                var x = await fuseki.getQuery(projNo, q)
-                var countNew = x.results.bindings.length
+                await writeFile(tempFilePath, triples)
+            }catch(e){
+                next({msg: e, status: 500})
+            }
+            
+            // Do all the OPM stuff
+            try{
+                const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
+                res.send(msg)
             }catch(e){
                 next({msg: e.message, status: e.status})
             }
+        }
 
-            // Query to count the number of properties that will be updated
-            var q = _opmBatchUpdate(tempGraphURI, 'select')
-            try{
-                var x = await fuseki.getQuery(projNo, q);
-                var countUpdated = x.results.bindings.length
-            }catch(e){
-                next({msg: e.message, status: e.status})
-            }
+        // Handle file
+        else{
+            
+            // Get file content and load it in temp graph
+            upload(req, res, async (err) => {
 
-            if(countNew != 0){
-                // Insert new properties
-                q = _opmBatchCreate(tempGraphURI, 'insert')
+                // Throw error if no file recieved
+                if(!req.file) next({msg: "No file recieved", status: 400})
+
+                // Throw error if upload fails
+                if(err) next({msg: "File upload failed", status: 422})
+
+                // Get temp file path
+                const tempFilePath = path.join(tempUploadFolder, req.file.filename)
+
+                // Do all the OPM stuff
                 try{
-                    await fuseki.updateQuery(projNo,q);
+                    const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
+                    res.send(msg)
                 }catch(e){
                     next({msg: e.message, status: e.status})
                 }
-            }
-    
-            if(countUpdated != 0){
-                // Insert new property states
-                q = _opmBatchUpdate(tempGraphURI, 'insert')
-                try{
-                    await fuseki.updateQuery(projNo,q);
-                }catch(e){
-                    next({msg: e.message, status: e.status})
-                }
-            }
 
-            // Clear temp graph
-            q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`
-            await fuseki.updateQuery(projNo,q);
-
-            // Make sure temp file was deleted
-            await deleteTempPromise;
-
-            var msg = `Assigned ${countNew} new properties and updated ${countUpdated} existing properties`
-
-            res.send(msg)
-
-        })
+            })
+        }
 
     })
 
 }
 
-var _opmBatchCreate = (tempGraphURI, queryType) => {
+const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
+
+    // Upload file to temp graph in triplestore
+    await fuseki.loadFile(projNo, tempFilePath, tempGraphURI)
+
+    // Delete temp file (returns promise)
+    var deleteTempPromise = deleteFile(tempFilePath)
+
+    // Query to count the number of new properties that will be created
+    var q = _opmBatchCreate(tempGraphURI, 'select')
+
+    try{
+        var x = await fuseki.getQuery(projNo, q)
+        var countNew = x.results.bindings.length
+    }catch(e){
+        next({msg: e.message, status: e.status})
+    }
+
+    // Query to count the number of properties that will be updated
+    var q = _opmBatchUpdate(tempGraphURI, 'select')
+    try{
+        var x = await fuseki.getQuery(projNo, q);
+        var countUpdated = x.results.bindings.length
+    }catch(e){
+        next({msg: e.message, status: e.status})
+    }
+
+    if(countNew != 0){
+        // Insert new properties
+        q = _opmBatchCreate(tempGraphURI, 'insert')
+        await fuseki.updateQuery(projNo,q);
+    }
+
+    if(countUpdated != 0){
+        // Insert new property states
+        q = _opmBatchUpdate(tempGraphURI, 'insert')
+        await fuseki.updateQuery(projNo,q);
+    }
+
+    // Clear temp graph
+    q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`
+    await fuseki.updateQuery(projNo,q);
+
+    // Make sure temp file was deleted
+    await deleteTempPromise;
+
+    return `Assigned ${countNew} new properties and updated ${countUpdated} existing properties`;
+
+}
+
+const _opmBatchCreate = (tempGraphURI, queryType) => {
 
     if(!queryType) queryType = "select";
 
@@ -139,7 +178,7 @@ var _opmBatchCreate = (tempGraphURI, queryType) => {
     return ldTools.appendPrefixesToQuery(q);
 }
 
-var _opmBatchUpdate = (tempGraphURI, queryType) => {
+const _opmBatchUpdate = (tempGraphURI, queryType) => {
     
     if(!queryType) queryType = "select";
 

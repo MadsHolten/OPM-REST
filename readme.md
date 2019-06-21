@@ -1,5 +1,7 @@
 ## INSTALL
 
+In order to run the API you need to have [NodeJS](https://nodejs.org/en/).
+
 1. Clone repository
 2. run command `npm install`
 3. install Jena Fuseki and run it on port 3030

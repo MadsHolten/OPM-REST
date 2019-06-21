@@ -1,0 +1,34 @@
+.full-width{
+    width: 100%
+}
+.canvas-card{
+    margin: 1vw 10vw 1vw 10vw;
+    padding: 30px;
+}
+.code{
+    background-color: lightgray;
+    font-family: consolas;
+}
+.upload-ok{
+    color: green;
+    font-weight: 500;
+}
+.upload-fail{
+    color: red;
+    font-weight: 500;
+}
+p{
+    font-size: 1em;
+}
+button{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+table{
+    width: 100%;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+tr{
+    min-height: 300px;
+}

@@ -2,12 +2,15 @@ const rp = require('request-promise')
 const config = require('../../config.json')
 const path = require('path')
 const fs = require('fs')
+const ldt = require('./ld-tools')
 
 var baseURI = config.triplestoreEndpoint
 
 var mainObject = {};
 
 mainObject.getQuery = async (dbName, q, mimeType) => {
+
+    q = ldt.appendPrefixesToQuery(q);
 
     if(!mimeType) mimeType = 'application/sparql-results+json';
 

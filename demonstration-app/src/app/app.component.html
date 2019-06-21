@@ -1,0 +1,54 @@
+<mat-card class="canvas-card">
+
+  <h2>OPM for calculations</h2>
+
+  <p>The purpose of this simple app is to demonstrate how to make operations 
+    on an Architecture, Engineering and Construction (AEC) Knowledge Graph 
+    with OPM-REST. Created by 
+    <a href="https://www.researchgate.net/profile/Mads_Holten_Rasmussen" target="blank">Mads 
+      Holten Rasmussen</a>.
+  </p>
+
+  <mat-form-field class="full-width">
+    <input matInput placeholder="OPM-REST endpoint" [ngModel]="backend">
+  </mat-form-field>
+
+  <mat-form-field class="full-width">
+    <input matInput placeholder="Fuseki dataset name" [ngModel]="db">
+  </mat-form-field>
+
+  <!-- Stepper -->
+  <mat-horizontal-stepper [linear]="true" #stepper>
+
+    <!-- Add some data -->
+    <mat-step>
+
+      <ng-template matStepLabel>Load some data</ng-template>
+      <app-step1 [backend]="backend" [db]="db"></app-step1>
+
+    </mat-step>
+
+    <mat-step>
+      <ng-template matStepLabel>Create dummy interfaces</ng-template>
+      <app-step2 [backend]="backend" [db]="db"></app-step2>
+
+    </mat-step>
+
+    <!-- Perform calculations -->
+    <mat-step>
+      <ng-template matStepLabel>Create calculations</ng-template>
+      <app-step3 [backend]="backend" [db]="db"></app-step3>
+
+    </mat-step>
+
+    <!-- Simulate changes -->
+    <mat-step>
+      <ng-template matStepLabel>Use calculations</ng-template>
+      <app-step4 [backend]="backend" [db]="db"></app-step4>
+
+    </mat-step>
+
+
+  </mat-horizontal-stepper>
+
+</mat-card>

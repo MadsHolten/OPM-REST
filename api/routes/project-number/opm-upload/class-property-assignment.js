@@ -1,14 +1,16 @@
-const fuseki = require('../../../helpers/fuseki-connection')
-const ldTools = require('../../../helpers/ld-tools')
-const config = require('../../../../config.json')
-const path = require('path')
-const uploadsFolder = path.join(__dirname, '../../../../static/uploads')
-const tempUploadFolder = path.join(uploadsFolder, '/temp')
-const multer = require('multer')
-const util = require('util')
-const fs = require('fs')
+const fuseki = require('../../../helpers/fuseki-connection');
+const ldTools = require('../../../helpers/ld-tools');
+const config = require('../../../../config.json');
+const path = require('path');
+const uploadsFolder = path.join(__dirname, '../../../../static/uploads');
+const tempUploadFolder = path.join(uploadsFolder, '/temp');
+const multer = require('multer');
+const util = require('util');
+const fs = require('fs');
+const urljoin = require('url-join');
 
 const deleteFile = util.promisify(fs.unlink);
+const writeFile = util.promisify(fs.writeFile);
 
 var upload = multer({
     dest: tempUploadFolder
@@ -20,91 +22,139 @@ module.exports = (app) => {
     app.post('/:projNo/opm-upload/class-property-assignment', async (req, res, next) => {
 
         // Get data
-        const projNo = req.params.projNo
-        var msg
-        var countNew = 0
-        countUpdated = 0
-
+        const projNo = req.params.projNo;
 
         // Make URI for temp graph
-        const tempGraphURI = `${config.dataNamespace}/${projNo}/class-ass-temp`
+        const tempGraphURI = urljoin(config.dataNamespace, projNo, 'class-prop-ass-temp');
 
-        // Get file content and load it in temp graph
-        upload(req, res, async (err) => {
+        // Get content type header
+        const contentType = req.headers['content-type'];
 
-            // Throw error if no file recieved
-            if(!req.file) next({msg: "No file recieved", status: 400})
+        // Set content-type of response
+        res.type('text/plain');
 
-            // Throw error if upload fails
-            if(err) next({msg: "File upload failed", status: 422})
+        // Handle text
+        if(contentType.indexOf('multipart/form-data') == -1){
+            const triples = req.body;
 
-            // Get temp file path
-            var tempFilePath = path.join(tempUploadFolder, req.file.filename)
+            // Throw error if no data recieved
+            if(!triples) next({msg: "No triples recieved", status: 400});
 
-            // Upload file to temp graph in triplestore
-            await fuseki.loadFile(projNo, tempFilePath, tempGraphURI)
+            const fileName = Date.now().toString();
+            const tempFilePath = path.join(tempUploadFolder, fileName);
 
-            // Delete temp file (returns promise)
-            var deleteTempPromise = deleteFile(tempFilePath)
-
-            // Query to count the number of new properties that will be created
-            var q = _opmBatchClassCreate(tempGraphURI, 'select')
+            // Write triples to a file
             try{
-                var x = await fuseki.getQuery(projNo, q)
-                countNew = x.results.bindings.length
-                console.log(countNew)
+                await writeFile(tempFilePath, triples);
             }catch(e){
-                next({msg: e.message, status: e.status})
+                console.log(e);
+                next({msg: e, status: 500});
             }
-
-            // Query to count the number of properties that will be updated
-            var q = _opmBatchClassUpdate(tempGraphURI, 'select')
-            try{
-                var x = await fuseki.getQuery(projNo, q)
-                countUpdated = x.results.bindings.length
-            }catch(e){
-                next({msg: e.message, status: e.status})
-            }
-
-            if(countNew != 0){
-                // Insert new properties
-                q = _opmBatchClassCreate(tempGraphURI, 'insert')
-                console.log(q)
-                try{
-                    await fuseki.updateQuery(projNo,q)
-                }catch(e){
-                    next({msg: e.message, status: e.status})
-                }
-            }
-    
-            if(countUpdated != 0){
-                // Insert new property states
-                q = _opmBatchClassUpdate(tempGraphURI, 'insert')
-                try{
-                    await fuseki.updateQuery(projNo,q)
-                }catch(e){
-                    next({msg: e.message, status: e.status})
-                }
-            }
-
-            // Clear temp graph
-            q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`
-            await fuseki.updateQuery(projNo,q)
             
-            // Make sure temp file was deleted
-            await deleteTempPromise;
+            // Do all the OPM stuff
+            try{
+                const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
+                res.send(msg);
+            }catch(e){
+                next({msg: e.message, status: e.status});
+            }
+        }
 
-            var msg = `Assigned ${countNew} new properties and updated ${countUpdated} existing properties for classes`
+        // Handle file
+        else{
 
-            res.send(msg)
+            // Get file content and load it in temp graph
+            upload(req, res, async (err) => {
 
-        })
+                // Throw error if no file recieved
+                if(!req.file) next({msg: "No file recieved", status: 400});
+
+                // Throw error if upload fails
+                if(err) next({msg: "File upload failed", status: 422});
+
+                // Get temp file path
+                const tempFilePath = path.join(tempUploadFolder, req.file.filename);
+
+                // Do all the OPM stuff
+                try{
+                    const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
+                    res.send(msg);
+                }catch(e){
+                    next({msg: e.message, status: e.status});
+                }
+
+            })
+
+        }
 
     })
 
 }
 
-var _opmBatchClassCreate = (tempGraphURI, queryType) => {
+const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
+
+    var countNew = 0;
+    var countUpdated = 0;
+
+    // Upload file to temp graph in triplestore
+    await fuseki.loadFile(projNo, tempFilePath, tempGraphURI);
+
+    // Delete temp file (returns promise)
+    var deleteTempPromise = deleteFile(tempFilePath);
+
+    // Query to count the number of new properties that will be created
+    var q = _opmBatchClassPropertyCreate(tempGraphURI, 'select');
+    try{
+        var x = await fuseki.getQuery(projNo, q);
+        console.log(x)
+        countNew = x.results.bindings.length
+    }catch(e){
+        next({msg: e.message, status: e.status})
+    }
+
+    // Query to count the number of properties that will be updated
+    var q = _opmBatchClassUpdate(tempGraphURI, 'select')
+    console.log(q);
+    try{
+        var x = await fuseki.getQuery(projNo, q)
+        console.log(x)
+        countUpdated = x.results.bindings.length
+    }catch(e){
+        next({msg: e.message, status: e.status})
+    }
+
+    if(countNew != 0){
+        // Insert new properties
+        q = _opmBatchClassPropertyCreate(tempGraphURI, 'insert')
+        try{
+            await fuseki.updateQuery(projNo,q)
+        }catch(e){
+            next({msg: e.message, status: e.status})
+        }
+    }
+
+    if(countUpdated != 0){
+        // Insert new property states
+        q = _opmBatchClassUpdate(tempGraphURI, 'insert')
+        try{
+            await fuseki.updateQuery(projNo,q)
+        }catch(e){
+            next({msg: e.message, status: e.status})
+        }
+    }
+
+    // Clear temp graph
+    q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`
+    await fuseki.updateQuery(projNo,q)
+
+    // Make sure temp file was deleted
+    await deleteTempPromise;
+
+    return `Assigned ${countNew} new properties and updated ${countUpdated} existing properties for classes`
+
+}
+
+const _opmBatchClassPropertyCreate = (tempGraphURI, queryType) => {
 
     if(!queryType) queryType = "select"
 
@@ -152,7 +202,7 @@ var _opmBatchClassCreate = (tempGraphURI, queryType) => {
 
 }
 
-var _opmBatchClassUpdate = (tempGraphURI, queryType) => {
+const _opmBatchClassUpdate = (tempGraphURI, queryType) => {
     
     if(!queryType) queryType = "select"
 
