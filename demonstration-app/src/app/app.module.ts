@@ -9,7 +9,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {  MatStepperModule, MatInputModule, 
           MatFormFieldModule, MatCardModule,
           MatExpansionModule, MatButtonModule,
-          MatSlideToggleModule, MatTooltipModule } from '@angular/material';
+          MatSlideToggleModule, MatTooltipModule,
+          MatDividerModule } from '@angular/material';
 
 import { AppService } from './app.service';
 import { AppData } from './app.data';
@@ -42,7 +43,8 @@ import { Step4Component } from './step4.component';
     MatButtonModule,
     CodemirrorModule,
     MatSlideToggleModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatDividerModule
   ],
   providers: [
     AppService,

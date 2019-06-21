@@ -10,15 +10,21 @@ module.exports = (app) => {
     // GET PROPERTIES
     app.get('/:projNo/:discipline/properties', async (req, res, next) => {
 
+        config.DEBUG && console.log("Route: GET /:projNo/:discipline/properties");
+
         // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);
-
-        const opmProp = new OPMProp(namespace);
-        const q = opmProp.getAllProps();
+        const namespace = urljoin(config.dataNamespace, projNo, discipline);    
         
         try{
+            // Build query with OPM-QG
+            const opmProp = new OPMProp(namespace);
+            const q = opmProp.getAllProps();
+            
+            config.DEBUG && console.log(q);
+
+            // Run query
             var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
             res.send(_buildOPMPropTree(qRes));
         }catch(e){

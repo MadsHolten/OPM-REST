@@ -1,4 +1,5 @@
 {
+    "DEBUG": true,
     "dataNamespace": "http://localhost:3000",
     "triplestoreEndpoint": "http://localhost:3030",
     "namespaces": [

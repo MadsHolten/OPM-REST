@@ -10,6 +10,8 @@ module.exports = (app) => {
     // GET CALCULATIONS
     app.get('/:projNo/:discipline/calculations', async (req, res, next) => {
 
+        config.DEBUG && console.log("Route: GET /:projNo/:discipline/calculations");
+
         // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
@@ -29,6 +31,8 @@ module.exports = (app) => {
 
     // GET OUTDATED CALCULATIONS
     app.get('/:projNo/:discipline/calculations/outdated', async (req, res, next) => {
+
+        config.DEBUG && console.log("Route: GET /:projNo/:discipline/calculations/outdated");
 
         // Get URL params
         const projNo = req.params.projNo;
@@ -54,6 +58,8 @@ module.exports = (app) => {
         check('argumentPaths').exists(),
         check('inferredProperty').exists()
     ], async (req, res, next) => {
+
+        config.DEBUG && console.log("Route: POST /:projNo/:discipline/calculations");
 
         // Check for validation errors
         const errors = validationResult(req);
@@ -81,12 +87,12 @@ module.exports = (app) => {
             next({msg: e.message, status: e.status});
         }
 
-        res.send({q});
-
     })
 
     // GET SPECIFIC CALCULATION
     app.get('/:projNo/:discipline/calculations/:id', async (req, res, next) => {
+
+        config.DEBUG && console.log("Route: GET /:projNo/:discipline/calculations/:id");
 
         // Get URL params
         const projNo = req.params.projNo;
@@ -110,6 +116,8 @@ module.exports = (app) => {
     // APPEND CALCULATION
     app.post('/:projNo/:discipline/calculations/:id', async (req, res, next) => {
 
+        config.DEBUG && console.log("Route: POST /:projNo/:discipline/calculations/:id");
+
         // URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
@@ -126,9 +134,15 @@ module.exports = (app) => {
         // Get calculation data
         var calcData;
         try{
+            // Build query with OPM-QG
             var query = opmCalc.getCalcData({calculationURI});
+            config.DEBUG && console.log('---\n'+query);
+
+            // Run query
             var qRes = await fuseki.getQuery(projNo, query, 'application/ld+json');
             calcData = await _transformRes(qRes);
+            config.DEBUG && console.log('---\n'+JSON.stringify(calcData, null, 2));
+
             calcData.calculationURI = calculationURI;
         }catch(e){
             console.log(e)
@@ -137,22 +151,29 @@ module.exports = (app) => {
         // Append calculation and return 
         try{
             if(materialize){
-                // Count number of results
-                calcData.queryType = 'count';
-                query = opmCalc.postCalc(calcData);
-                var count = await fuseki.getQuery(projNo, query);
-                count = count.results.bindings[0].count.value;
-                var msg = count == 0 ? 'There were no new calculation results to insert' : `successfully inserted ${count} calculation results.`;
+                // // Count number of results
+                // calcData.queryType = 'count';
+                // query = opmCalc.postCalc(calcData);
+                // config.DEBUG && console.log('---\n'+query);
+
+                // var count = await fuseki.getQuery(projNo, query);
+                // count = count.results.bindings[0].count.value;
+                // config.DEBUG && console.log('---\n'+count+' new results to insert');
+                // var msg = count == 0 ? 'There were no new calculation results to insert' : `successfully inserted ${count} calculation results.`;
 
                 // Append
                 calcData.queryType = 'insert';
                 query = opmCalc.postCalc(calcData);
+                config.DEBUG && console.log('---\n'+query);
+
                 await fuseki.updateQuery(projNo, query);
 
                 res.send({msg});
             }else{
                 calcData.queryType = 'construct';
                 query = opmCalc.postCalc(calcData);
+                config.DEBUG && console.log('---\n'+query);
+
                 var inserted = await fuseki.getQuery(projNo, query, 'application/ld+json');
                 res.send(inserted);
             }
@@ -165,6 +186,8 @@ module.exports = (app) => {
     // RE-APPNED CALCULATION
     app.put('/:projNo/:discipline/calculations/:id', async (req, res, next) => {
 
+        config.DEBUG && console.log("Route: PUT /:projNo/:discipline/calculations/:id");
+
         // URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
@@ -181,7 +204,11 @@ module.exports = (app) => {
         // Get calculation data
         var calcData;
         try{
+            // Build query with OPM-QG
             var query = opmCalc.getCalcData({calculationURI});
+            config.DEBUG && console.log(query);
+
+            // Run query
             var qRes = await fuseki.getQuery(projNo, query, 'application/ld+json');
             calcData = await _transformRes(qRes);
             calcData.calculationURI = calculationURI;
