@@ -151,15 +151,15 @@ module.exports = (app) => {
         // Append calculation and return 
         try{
             if(materialize){
-                // // Count number of results
-                // calcData.queryType = 'count';
-                // query = opmCalc.postCalc(calcData);
-                // config.DEBUG && console.log('---\n'+query);
+                // Count number of results
+                calcData.queryType = 'count';
+                query = opmCalc.postCalc(calcData);
+                config.DEBUG && console.log('---\n'+query);
 
-                // var count = await fuseki.getQuery(projNo, query);
-                // count = count.results.bindings[0].count.value;
-                // config.DEBUG && console.log('---\n'+count+' new results to insert');
-                // var msg = count == 0 ? 'There were no new calculation results to insert' : `successfully inserted ${count} calculation results.`;
+                var count = await fuseki.getQuery(projNo, query);
+                count = count.results.bindings[0].count.value;
+                config.DEBUG && console.log('---\n'+count+' new results to insert');
+                var msg = count == 0 ? 'There were no new calculation results to insert' : `successfully inserted ${count} calculation results.`;
 
                 // Append
                 calcData.queryType = 'insert';

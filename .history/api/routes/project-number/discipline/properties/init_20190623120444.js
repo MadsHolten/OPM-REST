@@ -44,13 +44,11 @@ module.exports = (app) => {
         const id = req.params.id;
         const namespace = urljoin(config.dataNamespace, projNo, discipline);
         const propURI = urljoin(namespace, 'properties', id);
+
+        const opmProp = new OPMProp(namespace);
+        const q = opmProp.getPropertyHistory(propURI);
         
         try{
-            // Generate OPM query
-            const opmProp = new OPMProp(namespace);
-            const q = opmProp.getPropertyHistory(propURI);
-
-            // Execute query
             var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
             res.send(_buildOPMPropTree(qRes));
             // res.send(qRes);
@@ -72,23 +70,18 @@ module.exports = (app) => {
         const namespace = urljoin(config.dataNamespace, projNo, discipline);
         const propertyURI = urljoin(namespace, 'properties', id);
 
-        // Get body
-        const body = req.body.value;
-        const value = `"${body.value}"^^<${body.type}>`;
+        var input = {
+            propertyURI,
+            value: '"70 Cel"^^cdt:temperature'
+        };
 
-        try{
-            // Generate OPM query
-            const opmProp = new OPMProp(namespace);
-            const q = opmProp.putProperty(propertyURI, value);
+        const opmProp = new OPMProp(namespace);
+        const q = opmProp.putProperty(propURI);
 
-            console.log(q)
+        console.log(body);
+        console.log(q);
 
-            // Execute update query
-            await fuseki.updateQuery(projNo, q);
-            res.send({msg: "Successfully updated property"});
-        }catch(e){
-            next({msg: e.message, status: e.status});
-        }
+        res.send({msg: 'WIP'})
 
     })
     
@@ -96,7 +89,6 @@ module.exports = (app) => {
 
 // NB! This should be extended to provide a more generic approach for building the trees
 _buildOPMPropTreeNew = (jsonld) => {
-
     // Create tree structure
     var formatted = [];
     const root = jsonld['@graph'];
@@ -140,24 +132,16 @@ _buildOPMPropTree = (jsonld) => {
     const root = jsonld['@graph'];
 
     root.forEach(item => {
-        if(item.hasPropertyState){
-
-            // Find each of the property states in the root
-            if(typeof item.hasPropertyState == 'string'){
-                const match = root.find(r => r['@id'] == item.hasPropertyState);
-                item.hasPropertyState = match;
-            }else{
-                item.hasPropertyState.forEach((state,i) => {
-                    const match = root.find(r => r['@id'] == state);
-                    if(match){
-                        item.hasPropertyState[i] = match;
-                    }
-                })
-            }            
-            
-            formatted.push(item);
-        }
-
+        const keys = Object.keys(item);
+        keys.forEach(key => {
+            if(key == 'hasPropertyState'){
+                const match = root.find(r => r['@id'] == item[key]);
+                if(match){
+                    item.hasPropertyState = match;
+                    formatted.push(item);
+                }
+            }
+        });
         return item;
     })
 

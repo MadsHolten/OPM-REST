@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import * as urljoin from 'url-join';
 
 @Injectable()
@@ -55,6 +56,26 @@ export class AppService {
     public getOutdated(host, db): Observable<any>{
         const url = urljoin(host, db, 'ice', 'calculations', 'outdated');
         return this._http.get(url);
+    }
+
+    public getThermalEnvironmentProperties(host, db){
+        var q = `
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX ice: <https://w3id.org/ice#>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
+            PREFIX opm: <https://w3id.org/opm#>
+            CONSTRUCT{
+                ?foi ?prop ?propURI .
+            }
+            WHERE{
+                ?foi rdfs:subClassOf ice:ThermalEnvironment , ?restr .
+                ?restr a owl:Restriction ;
+                    owl:onProperty ?prop ;
+                    owl:hasValue ?propURI .
+            }`;
+
+        return this.getQuery(host, db, q);
     }
 
 }

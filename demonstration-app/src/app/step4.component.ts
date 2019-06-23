@@ -31,6 +31,8 @@ export class Step4Component implements OnInit {
     public outdated;
     public materialize;
 
+    public thermalEnvProps;
+
     constructor(
         private _ad: AppData,
         private _as: AppService,
@@ -42,6 +44,8 @@ export class Step4Component implements OnInit {
         this.cmConfigSPARQL.mode = 'application/sparql-query';
 
         this.getCalculations();
+
+        this.getThermalEnvironmentProperties();
     }
 
     public getCalculations(){
@@ -86,6 +90,16 @@ export class Step4Component implements OnInit {
     public getOutdated(){
         this._as.getOutdated(this.backend, this.db).subscribe(res => {
             this.outdated = res;
+        }, err => console.log(err))
+    }
+
+    public getThermalEnvironmentProperties(){
+        this._as.getThermalEnvironmentProperties(this.backend, this.db).subscribe(res => {
+            this.thermalEnvProps = res['@graph'].map(item => {
+                const keys = Object.keys(item).filter(key => key != '@id');
+                item.propertyKeys = keys;
+                return item;
+            });
         }, err => console.log(err))
     }
 

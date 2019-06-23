@@ -149,6 +149,7 @@ _buildOPMPropTree = (jsonld) => {
             }else{
                 item.hasPropertyState.forEach((state,i) => {
                     const match = root.find(r => r['@id'] == state);
+                    console.log(match)
                     if(match){
                         item.hasPropertyState[i] = match;
                     }
@@ -156,8 +157,19 @@ _buildOPMPropTree = (jsonld) => {
             }            
             
             formatted.push(item);
+            
         }
-
+        // const keys = Object.keys(item);
+        // keys.forEach(key => {
+        //     if(key == 'hasPropertyState'){
+        //         const match = root.find(r => r['@id'] == item[key]);
+        //         // console.log(match)
+        //         if(match){
+        //             item.hasPropertyState = match;
+        //             formatted.push(item);
+        //         }
+        //     }
+        // });
         return item;
     })
 

@@ -97,6 +97,8 @@ module.exports = (app) => {
 // NB! This should be extended to provide a more generic approach for building the trees
 _buildOPMPropTreeNew = (jsonld) => {
 
+    console.log(jsonld)
+
     // Create tree structure
     var formatted = [];
     const root = jsonld['@graph'];
@@ -140,24 +142,16 @@ _buildOPMPropTree = (jsonld) => {
     const root = jsonld['@graph'];
 
     root.forEach(item => {
-        if(item.hasPropertyState){
-
-            // Find each of the property states in the root
-            if(typeof item.hasPropertyState == 'string'){
-                const match = root.find(r => r['@id'] == item.hasPropertyState);
-                item.hasPropertyState = match;
-            }else{
-                item.hasPropertyState.forEach((state,i) => {
-                    const match = root.find(r => r['@id'] == state);
-                    if(match){
-                        item.hasPropertyState[i] = match;
-                    }
-                })
-            }            
-            
-            formatted.push(item);
-        }
-
+        const keys = Object.keys(item);
+        keys.forEach(key => {
+            if(key == 'hasPropertyState'){
+                const match = root.find(r => r['@id'] == item[key]);
+                if(match){
+                    item.hasPropertyState = match;
+                    formatted.push(item);
+                }
+            }
+        });
         return item;
     })
 

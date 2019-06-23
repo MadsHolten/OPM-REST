@@ -141,23 +141,28 @@ _buildOPMPropTree = (jsonld) => {
 
     root.forEach(item => {
         if(item.hasPropertyState){
-
+            const pStates = typeof item.hasPropertyState == 'array' ? item.hasPropertyState : [item.hasPropertyState];
+            console.log(pStates)
             // Find each of the property states in the root
-            if(typeof item.hasPropertyState == 'string'){
-                const match = root.find(r => r['@id'] == item.hasPropertyState);
-                item.hasPropertyState = match;
-            }else{
-                item.hasPropertyState.forEach((state,i) => {
-                    const match = root.find(r => r['@id'] == state);
-                    if(match){
-                        item.hasPropertyState[i] = match;
-                    }
-                })
-            }            
+            pStates.forEach(state => {
+                // console.log(state)
+                // const match = root.find(r => r['@id'] == state);
+                // console.log(match)
+            })
             
-            formatted.push(item);
+            
         }
-
+        // const keys = Object.keys(item);
+        // keys.forEach(key => {
+        //     if(key == 'hasPropertyState'){
+        //         const match = root.find(r => r['@id'] == item[key]);
+        //         // console.log(match)
+        //         if(match){
+        //             item.hasPropertyState = match;
+        //             formatted.push(item);
+        //         }
+        //     }
+        // });
         return item;
     })
 

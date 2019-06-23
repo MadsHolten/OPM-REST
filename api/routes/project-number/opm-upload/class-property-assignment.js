@@ -113,7 +113,7 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
     }
 
     // Query to count the number of properties that will be updated
-    var q = _opmBatchClassUpdate(tempGraphURI, 'select')
+    var q = _opmBatchClassPropertyUpdate(tempGraphURI, 'select')
     console.log(q);
     try{
         var x = await fuseki.getQuery(projNo, q)
@@ -135,7 +135,7 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
 
     if(countUpdated != 0){
         // Insert new property states
-        q = _opmBatchClassUpdate(tempGraphURI, 'insert')
+        q = _opmBatchClassPropertyUpdate(tempGraphURI, 'insert')
         try{
             await fuseki.updateQuery(projNo,q)
         }catch(e){
@@ -190,9 +190,9 @@ const _opmBatchClassPropertyCreate = (tempGraphURI, queryType) => {
             }`;
 
     if(queryType.toLowerCase() != 'select'){
-        q+= `BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "properties/"), STRUUID())) AS ?propURI)
-            BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "states/"), STRUUID())) AS ?stateURI)
-            BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "restrictions/"), STRUUID())) AS ?restrictionURI)
+        q+= `BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "xx/properties/"), STRUUID())) AS ?propURI)
+            BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "xx/states/"), STRUUID())) AS ?stateURI)
+            BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "xx/restrictions/"), STRUUID())) AS ?restrictionURI)
             BIND(NOW() AS ?now)\n`
     }
 
@@ -202,7 +202,7 @@ const _opmBatchClassPropertyCreate = (tempGraphURI, queryType) => {
 
 }
 
-const _opmBatchClassUpdate = (tempGraphURI, queryType) => {
+const _opmBatchClassPropertyUpdate = (tempGraphURI, queryType) => {
     
     if(!queryType) queryType = "select"
 
@@ -243,7 +243,7 @@ const _opmBatchClassUpdate = (tempGraphURI, queryType) => {
             FILTER(xsd:string(?newVal) != xsd:string(?currentVal))\n`
     
     if(queryType.toLowerCase() != 'select'){
-        q+= `BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "states/"), STRUUID())) AS ?stateURI)
+        q+= `BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "xx/states/"), STRUUID())) AS ?stateURI)
             BIND(NOW() AS ?now)\n`
     }
 

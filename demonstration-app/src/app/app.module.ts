@@ -22,6 +22,8 @@ import { Step2Component } from './step2.component';
 import { Step3Component } from './step3.component';
 import { Step4Component } from './step4.component';
 
+import { OPMInputFormFieldModule } from './modules/opm-input-form-field.module';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -44,7 +46,8 @@ import { Step4Component } from './step4.component';
     CodemirrorModule,
     MatSlideToggleModule,
     MatTooltipModule,
-    MatDividerModule
+    MatDividerModule,
+    OPMInputFormFieldModule
   ],
   providers: [
     AppService,

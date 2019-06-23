@@ -6,6 +6,8 @@ module.exports = (app) => {
 
     // GET ALL INSTANCES OF A TYPE
     app.get('/:projNo/:discipline/:elementType', async (req, res, next) => {
+
+        config.DEBUG && console.log("Route: GET /:projNo/:discipline/:elementType");
     
         // GET URI PARAMS
         const projNo = req.params.projNo;
@@ -45,6 +47,8 @@ module.exports = (app) => {
     // DESCRIBE RESOURCE
     app.get('/:projNo/:discipline/:elementType/:id', async (req, res) => {
 
+        config.DEBUG && console.log("Route: GET /:projNo/:discipline/:elementType/:id");
+
         // GET URI PARAMS
         const projectNumber = req.params.projNo;
         const discipline = req.params.discipline;
@@ -76,6 +80,8 @@ module.exports = (app) => {
 
     // ADD RESOURCE OF SPECIFIC KIND
     app.post('/:projNo/:discipline/:elementType', async (req, res, next) => {
+
+        config.DEBUG && console.log("Route: POST /:projNo/:discipline/:elementType");
 
         // GET URI PARAMS
         const projNo = req.params.projNo;
