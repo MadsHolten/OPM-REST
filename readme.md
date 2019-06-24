@@ -1,3 +1,6 @@
+## DEMO APP
+An app demonstrating client communication with an AEC Knowledge Graph through OPM-REST can be accessed [here](https://madsholten.github.io/OPM-REST/)
+
 ## INSTALL
 
 Steps to run the OPM-REST backend:
