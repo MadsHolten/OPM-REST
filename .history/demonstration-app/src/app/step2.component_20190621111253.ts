@@ -79,24 +79,20 @@ export class Step2Component implements OnInit {
         var formatted = [];
         const root = res['@graph'];
 
-        if(root){
-            root.forEach(item => {
-                if(item['@type'].includes('bot:Space')){
-                    if(item.hasEnvelope){
-                        var envelope = [];
-                        item.hasEnvelope.forEach(envURI => {
-                            counter++;
-                            var envProps = root.find(x => x['@id'] == envURI);
-                            envelope.push(envProps);
-                        })
-                        item.hasEnvelope = envelope;
-                        formatted.push(item);
-                    }
+        root.forEach(item => {
+            if(item['@type'].includes('bot:Space')){
+                if(item.hasEnvelope){
+                var envelope = [];
+                item.hasEnvelope.forEach(envURI => {
+                    counter++;
+                    var envProps = root.find(x => x['@id'] == envURI);
+                    envelope.push(envProps);
+                })
+                item.hasEnvelope = envelope;
+                formatted.push(item);
                 }
-            })
-        }else{
-            console.log(res);
-        }
+            }
+        })
 
         // Update to new structure and update public var
         res['@graph'] = formatted;
