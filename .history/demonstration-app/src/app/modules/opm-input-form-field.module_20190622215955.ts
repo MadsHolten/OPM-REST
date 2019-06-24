@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { DialogHistoryComponent } from './dialog-history.component';
 import { OPMInputFormFieldComponent } from './opm-input-form-field.component';
 
 import { OPMInputFormFieldService } from './opm-input-form-field.service';
@@ -32,15 +31,10 @@ import { MatIconModule,
     MatTooltipModule
   ],
   declarations: [
-    OPMInputFormFieldComponent,
-    DialogHistoryComponent
+    OPMInputFormFieldComponent
   ],
   exports: [
-    OPMInputFormFieldComponent,
-    DialogHistoryComponent
-  ],
-  entryComponents: [
-    DialogHistoryComponent
+    OPMInputFormFieldComponent
   ],
   providers: [ OPMInputFormFieldService ]
 })

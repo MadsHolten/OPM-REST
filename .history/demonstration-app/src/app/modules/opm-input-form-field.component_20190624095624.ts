@@ -2,8 +2,6 @@ import { Component, forwardRef, Input, OnChanges } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, NG_VALIDATORS, FormControl } from '@angular/forms';
 import { MatDialog, MatSnackBar } from '@angular/material';
 
-import { DialogHistoryComponent } from './dialog-history.component';
-
 import { OPMInputFormFieldService } from './opm-input-form-field.service';
 
 import { RDFLiteral } from './opm-input-form-field.models';
@@ -107,11 +105,7 @@ export class OPMInputFormFieldComponent implements ControlValueAccessor, OnChang
     }
 
     onShowHistory(){
-        let dialogRef = this.dialog.open(DialogHistoryComponent, {
-            height: '300px',
-            width: '500px',
-            data: this.allStates
-        });
+        console.log(this.allStates);
     }
 
     onResetProperty(){
@@ -127,10 +121,7 @@ export class OPMInputFormFieldComponent implements ControlValueAccessor, OnChang
             // Update the property
             this._s.updateProperty(this.propertyURI, val).subscribe(res => {
                 this.initialValue = this.currentValue;     // Update initial value to the updated property value
-                this.historyCount++;                       // Increment history count by 1
-
-                // Get property history from OPM-REST
-                this.getPropertyValue();
+                this.historyCount++;                // Increment history count by 1
 
                 console.log(`opm-input-form-field updated property ${this.propertyURI} to "${this.currentValue}"`);
             }, err => {

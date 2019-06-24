@@ -127,10 +127,7 @@ export class OPMInputFormFieldComponent implements ControlValueAccessor, OnChang
             // Update the property
             this._s.updateProperty(this.propertyURI, val).subscribe(res => {
                 this.initialValue = this.currentValue;     // Update initial value to the updated property value
-                this.historyCount++;                       // Increment history count by 1
-
-                // Get property history from OPM-REST
-                this.getPropertyValue();
+                this.historyCount++;                // Increment history count by 1
 
                 console.log(`opm-input-form-field updated property ${this.propertyURI} to "${this.currentValue}"`);
             }, err => {
