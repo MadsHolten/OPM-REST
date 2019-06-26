@@ -50,17 +50,14 @@ require('./routes/project-number/discipline/properties').init(app);
 /**
  * OPM CALCULATION routes
  * 
- * GET      /:projNo/:discipline/calculations               // All calculations
- * GET      /:projNo/:discipline/calculations/outdated      // List outdated calculation results
- * GET      /:projNo/:discipline/calculations/tree          // List all calculations in the order that they are dependent on each other
- * POST     /:projNo/:discipline/calculations               // Create calculation
- * GET      /:projNo/:discipline/calculations/:id           // Calculation data for specific calculation
- * POST     /:projNo/:discipline/calculations/:id           // Append in all situations where path is matched and no existing result
- * PUT      /:projNo/:discipline/calculations/:id           // Re-append in all situations where path is match and existing result is outdated
+ * GET      /:projNo/:discipline/calculations
+ * POST     /:projNo/:discipline/calculations
+ * POST     /:projNo/:discipline/calculations/:id
+ * PUT      /:projNo/:discipline/calculations/:id
  * 
  */
-require('./routes/project-number/discipline/calculations').tree(app);
 require('./routes/project-number/discipline/calculations').init(app);
+require('./routes/project-number/discipline/calculations').tree(app);
 
 /**
  * Resource type routes

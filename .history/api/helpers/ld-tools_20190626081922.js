@@ -54,7 +54,7 @@ ldt.appendContext = (prefixedURI) => {
     var ns = subElements[0];
     var rest = subElements[1];
 
-    var match = namespaces.filter(pfx => pfx.prefix == ns)[0];
+    var match = _.filter(namespaces, pfx => pfx.prefix == ns)[0];
     if(!match || !match.uri) return prefixedURI;
 
     return match.uri+rest;

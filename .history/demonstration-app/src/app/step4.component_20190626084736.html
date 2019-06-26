@@ -13,7 +13,6 @@
 <div>
     <p *ngIf="!calculations">No calculations to show. Did you fulfill step 3?</p>
     <button mat-stroked-button (click)="updateAll()">Update list and build tree</button>
-    <p>Numbers indicate execution order or depth. 0 is executed first and all calculations with the same depth can be executed in parallel.</p>
 </div>
 
 <div *ngIf="calculations">
@@ -23,7 +22,7 @@
         <mat-expansion-panel *ngFor="let item of calculations">
             <mat-expansion-panel-header *ngIf="item.label">
             <mat-panel-title>
-                <span *ngIf="item.depth || item.depth === 0" style="width: 2vw">{{item.depth}}</span>
+                <span *ngIf="item.depth">{{item.depth}} </span>
                 <span [class.upload-ok]="item.writeStatus == 'success'" [class.upload-fail]="item.writeStatus && item.writeStatus != 'success'">{{item.label['@value']}}</span>
             </mat-panel-title>
             </mat-expansion-panel-header>

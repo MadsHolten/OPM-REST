@@ -569,7 +569,8 @@ WHERE{
             label: '"Temperature difference over thermal envelope segments"@en',
             argumentPaths: [
                 '?foi ice:surfaceExterior ?ext . ?ext a ?env1 . ?env1 rdfs:subClassOf+ ?restr1 . ?restr1 a owl:Restriction ; owl:onProperty props:designAmbientTemperature ; owl:hasValue ?te', 
-                '?foi ice:surfaceInterior ?int . ?int a ?env2 . ?env2 rdfs:subClassOf+ ?restr2 . ?restr2 a owl:Restriction ; owl:onProperty props:designAmbientTemperature ; owl:hasValue ?ti'],
+                '?foi ice:surfaceInterior ?int . ?int a ?env2 . ?env2 rdfs:subClassOf+ ?restr2 . ?restr2 a owl:Restriction ; owl:onProperty props:designAmbientTemperature ; owl:hasValue ?ti'
+            ],
             comment: 'Temperature difference over surface at design conditions for heating.',
             userURI: 'https://www.niras.dk/employees/mhra',
             expression: "?ti-?te",
@@ -577,28 +578,21 @@ WHERE{
         },
         {
             label: '"UA value for thermal envelope segments"@en',
-            argumentPaths: [
-                '?foi ice:representsElement ?el . ?el a ?elType . ?elType rdfs:subClassOf+ ?restr . ?restr a owl:Restriction ; owl:onProperty props:thermalTransmittance ; owl:hasValue ?uVal', 
-                '?foi props:heatTransferSurfaceArea ?area'],
+            argumentPaths: ['?foi ice:representsElement ?el . ?el props:thermalTransmittance ?uVal', '?foi props:heatTransferSurfaceArea ?area'],
             comment: 'Multiplies the adjacent element´s U-value with the area of the surface',
             userURI: 'https://www.niras.dk/employees/mhra',
             expression: "?uVal*?area",
             inferredProperty: 'props:nominalUA'
         },{
             label: '"Heat transmission loss over thermal envelope segments"@en',
-            argumentPaths: [
-                '?el props:nominalUA ?ua', 
-                '?el props:designTemperatureDifference ?dt'],
+            argumentPaths: ['?el props:nominalUA ?ua', '?el props:designTemperatureDifference ?dt'],
             comment: 'UA*dT',
             userURI: 'https://www.niras.dk/employees/mhra',
             expression: "?ua*?dt",
             inferredProperty: 'props:totalHeatTransferRate'
         },{
             label: '"Infiltration heat loss"@en',
-            argumentPaths: [
-                '?sp props:area ?a',
-                '?sp a ?env . ?env rdfs:subClassOf+ ?restr1 . ?restr1 a owl:Restriction ; owl:onProperty props:designAmbientTemperature ; owl:hasValue ?ti', 
-                '?sp a ?env . ?env rdfs:subClassOf+ ?restr2 . ?restr2 a owl:Restriction ; owl:onProperty props:airFlowrateInfiltration ; owl:hasValue ?inf'],
+            argumentPaths: ['?sp props:dimensionsArea ?a', '?sp props:designAmbientTemperature ?ti', '?sp props:airFlowrateInfiltration ?inf'],
             comment: 'Calculates infiltration heat loss as the product of spaceArea*infiltrationRatePerSqm*1.166*1.0075*(roomTemperature-(-12))',
             userURI: 'https://www.niras.dk/employees/mhra',
             expression: "?a*?inf*1.166*1.0075*(?ti-(-12))",
@@ -613,9 +607,7 @@ WHERE{
             inferredProperty: 'props:transmissionHeatTransferRate'
         },{
             label: '"Total heat loss for space"@en',
-            argumentPaths: [
-                '?foi props:transmissionHeatTransferRate ?tr', 
-                '?foi props:infiltrationHeatTransferRate ?inf'],
+            argumentPaths: ['?foi props:transmissionHeatTransferRate ?tr', '?foi props:infiltrationHeatTransferRate ?inf'],
             comment: 'Returns the sum of the infiltration heat loss and the transmission heat loss for each space.',
             userURI: 'https://www.niras.dk/employees/mhra',
             expression: "?tr+?inf",

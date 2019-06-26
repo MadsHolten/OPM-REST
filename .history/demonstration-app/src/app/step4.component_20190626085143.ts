@@ -80,7 +80,6 @@ export class Step4Component implements OnInit {
     }
 
     public postAll(){
-        // NB! Should use tree
         const calculations = this.calculations['@graph'] ? this.calculations['@graph'] : [this.calculations];
         calculations.forEach(item => {
             this.postSingle(item);
@@ -88,7 +87,6 @@ export class Step4Component implements OnInit {
     }
 
     public putAll(){
-        // NB! Should use tree
         const calculations = this.calculations['@graph'] ? this.calculations['@graph'] : [this.calculations];
         calculations.forEach(item => {
             this.putSingle(item);

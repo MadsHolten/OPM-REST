@@ -46,18 +46,4 @@ ldt.nameSpacesInQuery = (str) => {
     return array;
 }
 
-ldt.appendContext = (prefixedURI) => {
-    // Must contain a colon
-    if(prefixedURI.indexOf(":") == -1) return prefixedURI;
-
-    var subElements = prefixedURI.split(":");
-    var ns = subElements[0];
-    var rest = subElements[1];
-
-    var match = namespaces.filter(pfx => pfx.prefix == ns)[0];
-    if(!match || !match.uri) return prefixedURI;
-
-    return match.uri+rest;
-}
-
 module.exports = ldt;

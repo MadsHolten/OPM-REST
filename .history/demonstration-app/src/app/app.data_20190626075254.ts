@@ -613,9 +613,7 @@ WHERE{
             inferredProperty: 'props:transmissionHeatTransferRate'
         },{
             label: '"Total heat loss for space"@en',
-            argumentPaths: [
-                '?foi props:transmissionHeatTransferRate ?tr', 
-                '?foi props:infiltrationHeatTransferRate ?inf'],
+            argumentPaths: ['?foi props:transmissionHeatTransferRate ?tr', '?foi props:infiltrationHeatTransferRate ?inf'],
             comment: 'Returns the sum of the infiltration heat loss and the transmission heat loss for each space.',
             userURI: 'https://www.niras.dk/employees/mhra',
             expression: "?tr+?inf",

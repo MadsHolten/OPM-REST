@@ -58,11 +58,6 @@ export class AppService {
         return this._http.get(url);
     }
 
-    public getTree(host, db): Observable<any>{
-        const url = urljoin(host, db, 'ice', 'calculations', 'tree');
-        return this._http.get(url);
-    }
-
     public getThermalEnvironmentProperties(host, db){
         var q = `
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>

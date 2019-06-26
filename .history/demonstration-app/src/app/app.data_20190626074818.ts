@@ -597,8 +597,8 @@ WHERE{
             label: '"Infiltration heat loss"@en',
             argumentPaths: [
                 '?sp props:area ?a',
-                '?sp a ?env . ?env rdfs:subClassOf+ ?restr1 . ?restr1 a owl:Restriction ; owl:onProperty props:designAmbientTemperature ; owl:hasValue ?ti', 
-                '?sp a ?env . ?env rdfs:subClassOf+ ?restr2 . ?restr2 a owl:Restriction ; owl:onProperty props:airFlowrateInfiltration ; owl:hasValue ?inf'],
+                '?sp a ?env . ?env rdfs:subClassOf+ ?restr . ?restr a owl:Restriction ; owl:onProperty props:designAmbientTemperature ; owl:hasValue ?ti', 
+                '?sp a ?env . ?env rdfs:subClassOf+ ?restr . ?restr a owl:Restriction ; owl:onProperty props:airFlowrateInfiltration ; owl:hasValue ?inf'],
             comment: 'Calculates infiltration heat loss as the product of spaceArea*infiltrationRatePerSqm*1.166*1.0075*(roomTemperature-(-12))',
             userURI: 'https://www.niras.dk/employees/mhra',
             expression: "?a*?inf*1.166*1.0075*(?ti-(-12))",
@@ -613,9 +613,7 @@ WHERE{
             inferredProperty: 'props:transmissionHeatTransferRate'
         },{
             label: '"Total heat loss for space"@en',
-            argumentPaths: [
-                '?foi props:transmissionHeatTransferRate ?tr', 
-                '?foi props:infiltrationHeatTransferRate ?inf'],
+            argumentPaths: ['?foi props:transmissionHeatTransferRate ?tr', '?foi props:infiltrationHeatTransferRate ?inf'],
             comment: 'Returns the sum of the infiltration heat loss and the transmission heat loss for each space.',
             userURI: 'https://www.niras.dk/employees/mhra',
             expression: "?tr+?inf",

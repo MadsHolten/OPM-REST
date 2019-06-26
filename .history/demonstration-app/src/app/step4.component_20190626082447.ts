@@ -46,41 +46,25 @@ export class Step4Component implements OnInit {
         this.updateAll();
     }
 
-    public async updateAll(){
-        await this.getCalculations();
+    public updateAll(){
+        this.getCalculations();
         this.getTree();
         this.getThermalEnvironmentProperties();
     }
 
-    public getCalculations(): Promise<any>{
-        return new Promise((resolve, reject) => {
-            this._as.getCalculations(this.backend, this.db).subscribe(res => {
-                this.calculations = res['@graph'] ? res['@graph'] : [res];
-                resolve(this.calculations);
-            }, err => {
-                console.log(err);
-                reject(err);
-            })
-        });
+    public getCalculations(){
+        this._as.getCalculations(this.backend, this.db).subscribe(res => {
+            this.calculations = res['@graph'] ? res['@graph'] : [res];
+        }, err => console.log(err))
     }
 
     public getTree(){
         this._as.getTree(this.backend, this.db).subscribe(res => {
-            res.forEach(calc => {
-                this.calculations = this.calculations.map(item => {
-                    if(item['@id'] == calc['@id']){
-                        item.depth = calc.depth;
-                        item.dependencies = calc.dependencies;
-                        item.parents = calc.parents;
-                    }
-                    return item;
-                })
-            })
+            console.log(res);
         }, err => console.log(err))
     }
 
     public postAll(){
-        // NB! Should use tree
         const calculations = this.calculations['@graph'] ? this.calculations['@graph'] : [this.calculations];
         calculations.forEach(item => {
             this.postSingle(item);
@@ -88,7 +72,6 @@ export class Step4Component implements OnInit {
     }
 
     public putAll(){
-        // NB! Should use tree
         const calculations = this.calculations['@graph'] ? this.calculations['@graph'] : [this.calculations];
         calculations.forEach(item => {
             this.putSingle(item);
