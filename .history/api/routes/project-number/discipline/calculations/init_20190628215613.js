@@ -102,8 +102,10 @@ module.exports = (app) => {
         const namespace = urljoin(config.dataNamespace, projNo, discipline);
         const calculationURI = urljoin(namespace, 'calculations', id);
 
+        config.DEBUG && console.log("---\n"+calculationURI);
+
         const opmCalc = new OPMCalc(namespace);
-        const q = opmCalc.getCalcData({calculationURI});
+        const q = opmCalc.getCalcData(calculationURI);
 
         config.DEBUG && console.log("---\n"+q);
         

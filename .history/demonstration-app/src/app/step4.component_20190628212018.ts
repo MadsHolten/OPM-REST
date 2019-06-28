@@ -56,7 +56,6 @@ export class Step4Component implements OnInit {
         return new Promise((resolve, reject) => {
             this._as.getCalculations(this.backend, this.db).subscribe(res => {
                 this.calculations = res['@graph'] ? res['@graph'] : [res];
-                console.log(this.calculations)
                 resolve(this.calculations);
             }, err => {
                 console.log(err);
@@ -80,44 +79,24 @@ export class Step4Component implements OnInit {
         }, err => console.log(err))
     }
 
-    public async postAll(){
-
-        this.materialize = true;
-
-        const treeDepth = Math.max.apply(Math, this.calculations.map(item => item.depth));
-
-        // Do PUT on all calculations
-        var counter = 0;
-        while(counter <= treeDepth){
-            await Promise.all(this.postAllAtIndex(counter));
-            console.log('Finished POST for all calculations at depth '+counter);
-            this._as.wait(50);
-            counter++;
-        }
+    public postAll(){
+        // NB! Should use tree
+        const calculations = this.calculations['@graph'] ? this.calculations['@graph'] : [this.calculations];
+        calculations.forEach(item => {
+            this.postSingle(item);
+        })
     }
 
-    public async putAll(){
-
-        this.materialize = true;
-
-        const treeDepth = Math.max.apply(Math, this.calculations.map(item => item.depth));
-
-        // Do PUT on all calculations
-        var counter = 0;
-        while(counter <= treeDepth){
-            await Promise.all(this.putAllAtIndex(counter));
-            console.log('Finished PUT for all calculations at depth '+counter);
-            this._as.wait(50);
-            counter++;
-        }
+    public putAll(){
+        // NB! Should use tree
+        const calculations = this.calculations['@graph'] ? this.calculations['@graph'] : [this.calculations];
+        calculations.forEach(item => {
+            this.putSingle(item);
+        })
     }
 
     public putAllAtIndex = (index) => {
-        return this.calculations.filter(x => x.depth == index).map(item => this.putSingle(item));
-    }
-
-    public postAllAtIndex = (index) => {
-        return this.calculations.filter(x => x.depth == index).map(item => this.postSingle(item));
+        this.calculations.filter(x => x.depth == index).map(x => console.log(x));
     }
 
     public getCalculationResults(item){
@@ -137,43 +116,35 @@ export class Step4Component implements OnInit {
         }, err => console.log(err))
     }
 
-    public postSingle(item): Promise<any>{
-        return new Promise((resolve, reject) => {
-            var url = item['@id'];
-            if(this.materialize){
-                url += '?materialize=true';
-            }
-            this._http.post(url, {}).subscribe(res => {
-                item.result = JSON.stringify(res, null, '\t');
-                if(this.materialize) item.writeStatus = 'success';
-                resolve(res);
-            }, 
-            err => {
-                console.log(err)
-                item.writeStatus = err;
-                item.result = err;
-                reject(err);
-            })
+    public postSingle(item){
+        var url = item['@id'];
+        if(this.materialize){
+            url += '?materialize=true';
+        }
+        this._http.post(url, {}).subscribe(res => {
+            item.result = JSON.stringify(res, null, '\t');
+            if(this.materialize) item.writeStatus = 'success';
+        }, 
+        err => {
+            console.log(err)
+            item.writeStatus = err;
+            item.result = err;
         })
     }
 
-    public putSingle(item): Promise<any>{
-        return new Promise((resolve, reject) => {
-            var url = item['@id'];
-            if(this.materialize){
-                url += '?materialize=true';
-            }
-            this._http.put(url,{}).subscribe(res => {
-                item.result = JSON.stringify(res, null, '\t');
-                if(this.materialize) item.writeStatus = 'success';
-                resolve(res);
-            }, 
-            err => {
-                console.log(err)
-                item.writeStatus = err;
-                item.result = err;
-                reject(err);
-            });
+    public putSingle(item){
+        var url = item['@id'];
+        if(this.materialize){
+            url += '?materialize=true';
+        }
+        this._http.put(url,{}).subscribe(res => {
+            item.result = JSON.stringify(res, null, '\t');
+            if(this.materialize) item.writeStatus = 'success';
+        }, 
+        err => {
+            console.log(err)
+            item.writeStatus = err;
+            item.result = err;
         })
     }
 

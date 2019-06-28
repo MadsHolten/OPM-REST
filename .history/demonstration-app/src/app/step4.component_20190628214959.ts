@@ -56,7 +56,6 @@ export class Step4Component implements OnInit {
         return new Promise((resolve, reject) => {
             this._as.getCalculations(this.backend, this.db).subscribe(res => {
                 this.calculations = res['@graph'] ? res['@graph'] : [res];
-                console.log(this.calculations)
                 resolve(this.calculations);
             }, err => {
                 console.log(err);

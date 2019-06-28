@@ -56,7 +56,6 @@ export class Step4Component implements OnInit {
         return new Promise((resolve, reject) => {
             this._as.getCalculations(this.backend, this.db).subscribe(res => {
                 this.calculations = res['@graph'] ? res['@graph'] : [res];
-                console.log(this.calculations)
                 resolve(this.calculations);
             }, err => {
                 console.log(err);
@@ -80,44 +79,41 @@ export class Step4Component implements OnInit {
         }, err => console.log(err))
     }
 
-    public async postAll(){
-
-        this.materialize = true;
-
-        const treeDepth = Math.max.apply(Math, this.calculations.map(item => item.depth));
-
-        // Do PUT on all calculations
-        var counter = 0;
-        while(counter <= treeDepth){
-            await Promise.all(this.postAllAtIndex(counter));
-            console.log('Finished POST for all calculations at depth '+counter);
-            this._as.wait(50);
-            counter++;
-        }
+    public postAll(){
+        // NB! Should use tree
+        const calculations = this.calculations['@graph'] ? this.calculations['@graph'] : [this.calculations];
+        calculations.forEach(item => {
+            this.postSingle(item);
+        })
     }
 
     public async putAll(){
+        // NB! Should use tree
+        const calculations = this.calculations['@graph'] ? this.calculations['@graph'] : [this.calculations];
+        
+        // Get all depth items
+        var uniqDepths = calculations.map(item => console.log(item));
+        console.log(this.calculations);
 
-        this.materialize = true;
+        // this.putAllAtIndex(0);
 
-        const treeDepth = Math.max.apply(Math, this.calculations.map(item => item.depth));
-
-        // Do PUT on all calculations
-        var counter = 0;
-        while(counter <= treeDepth){
-            await Promise.all(this.putAllAtIndex(counter));
-            console.log('Finished PUT for all calculations at depth '+counter);
-            this._as.wait(50);
-            counter++;
-        }
+        // calculations.forEach(item => {
+        //     this.putSingle(item);
+        // })
     }
 
-    public putAllAtIndex = (index) => {
-        return this.calculations.filter(x => x.depth == index).map(item => this.putSingle(item));
-    }
+    public putAllAtIndex = (index): Promise<void> => {
+        return new Promise(async (resolve, reject) => {
+            var promises = [];
+            this.calculations.filter(x => x.depth == index).forEach(async item => {
+                const promise = this.postSingle(item);
+                promises.push(promise);
+            });
 
-    public postAllAtIndex = (index) => {
-        return this.calculations.filter(x => x.depth == index).map(item => this.postSingle(item));
+            // Return when all promises are returned
+            await Promise.all(promises);
+            resolve();
+        })
     }
 
     public getCalculationResults(item){

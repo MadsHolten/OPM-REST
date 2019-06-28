@@ -56,7 +56,6 @@ export class Step4Component implements OnInit {
         return new Promise((resolve, reject) => {
             this._as.getCalculations(this.backend, this.db).subscribe(res => {
                 this.calculations = res['@graph'] ? res['@graph'] : [res];
-                console.log(this.calculations)
                 resolve(this.calculations);
             }, err => {
                 console.log(err);
@@ -82,8 +81,6 @@ export class Step4Component implements OnInit {
 
     public async postAll(){
 
-        this.materialize = true;
-
         const treeDepth = Math.max.apply(Math, this.calculations.map(item => item.depth));
 
         // Do PUT on all calculations
@@ -97,8 +94,6 @@ export class Step4Component implements OnInit {
     }
 
     public async putAll(){
-
-        this.materialize = true;
 
         const treeDepth = Math.max.apply(Math, this.calculations.map(item => item.depth));
 

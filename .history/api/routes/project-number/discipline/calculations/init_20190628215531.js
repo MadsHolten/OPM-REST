@@ -103,7 +103,7 @@ module.exports = (app) => {
         const calculationURI = urljoin(namespace, 'calculations', id);
 
         const opmCalc = new OPMCalc(namespace);
-        const q = opmCalc.getCalcData({calculationURI});
+        const q = opmCalc.getCalcData(calculationURI);
 
         config.DEBUG && console.log("---\n"+q);
         
