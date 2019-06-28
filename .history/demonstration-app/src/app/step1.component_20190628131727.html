@@ -1,12 +1,8 @@
 <h4>1. Load some data</h4>
 
-<p>First we need to load some data into our Fuseki dataset. The triples have all been generated with the Dynamo scripts provided in
-  the tools folder of the <a href="https://github.com/MadsHolten/OPM-REST" target="blank">OPM-REST repository</a>. 
-  They are all extracted from the Revit version of the Common Building Information Model File: 
-  <a href="https://www.nibs.org/page/bsa_commonbimfiles#project1" target="blank">Duplex Apartment</a></p>
+<p>First we need to load some data into our Fuseki dataset. The triples have all been generated with the Dynamo scripts provided in the tools folder of the <a href="https://github.com/MadsHolten/OPM-REST" target="blank">OPM-REST repository</a>. They are all extracted from the Revit version of the Common Building Information Model File: <a href="https://www.nibs.org/page/bsa_commonbimfiles#project1" target="blank">Duplex Apartment</a></p>
 
-<p>Preferibly, this step is handled by directly transfering each sub-component from Revit to OPM-REST using the Dynamo scripts 
-  provided with the repository.</p>
+<p>Preferibly, this step is handled by directly transfering each sub-component from Revit to OPM-REST using the Dynamo scripts provided with the repository.</p>
 
 <button mat-stroked-button (click)="uploadAll()">Upload all</button> 
 
@@ -40,30 +36,10 @@
 </p>
 
 <p>
-  From the steps above we have the spaces, the walls and the space/wall relationships as illustrated in the first figure below.
+  From the steps above we have the spaces, the walls and the space/wall relationships as illustrated below.
 </p>
-
-<div style="width: 100%">
-  <a href="./assets/illustrations-01.svg"><img src="./assets/illustrations-01.svg" width="33%" /></a>
-  <a href="./assets/illustrations-02.svg"><img src="./assets/illustrations-02.svg" width="33%" /></a>
-  <a href="./assets/illustrations-03.svg"><img src="./assets/illustrations-03.svg" width="33%" /></a>
-</div>
-
-<p>The spaces are only classified as instances of bot:Space (and hence also bot:Zone).
-  The Indoor Climate and Energy (ICE) engineer sees these as thermal zones and more specifically for the purpose of heat loss calculations as heated or unheated zones.
-  Therefore such environments must be created and assigned to the spaces.
-</p>
-<p>
-  Also, the ICE engineer has another view on what a wall is, and therefore, a project specific class for walls (ont:DummyElement) is created. This will
-  be used to specify thermal properties of the walls.
-</p>
-<p>
-  Outdoors is also a zone of importance for heat loss calculations, and therefore, such a zone is created.
-</p>
-<p>
-  By specifying OWL property restrictions to these classes a reasoner will automatically infer the property values to all instances of the class.
-  The last figure demonstrates how this mechanism infers design temperatures and thermal transmittance.
-</p>
+<a href="./assets/illustrations-01.svg"><img src="./assets/illustrations-01.svg" width="40%" /></a>
+<p>>The outdoor zone does not exist and should be created. Also, the zones are </p>
 
 <!-- Panels for loading data generated manualy -->
 <mat-accordion>

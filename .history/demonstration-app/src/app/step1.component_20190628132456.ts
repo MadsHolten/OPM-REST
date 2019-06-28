@@ -91,40 +91,12 @@ export class Step1Component implements OnInit {
           triples: this._ad.thermalEnvironmentTriples
         },
         {
-          title: 'Assign heated room class to all spaces', 
-          description: 'All spaces are assigned to the new HeatedRoom class by doing string replacements in the space assignment triples. In a real world situation these should be mapped by the engineer.', 
-          response: null,
-          responseError: null,
-          endpoint: 'class-assignment',
-          triples: this._ad.spaceTriples
-            .replace('bot: <https://w3id.org/bot#>', 'ont: <http://localhost:3000/duplex/ice/ontology#>')
-            .replace(/bot:Space/g, 'ont:HeatedRoom')
-        },
-        {
           title: 'Create an outdoor environment', 
           description: 'Create an outdoor environment as an instance of ont:OutdoorsAir.', 
           response: null,
           responseError: null,
           endpoint: 'class-assignment',
           triples: this._ad.outdoorEnvironmentTriples
-        },
-        {
-          title: 'Create dummy ICE wall class', 
-          description: 'A dummy ICE wall class is created. This is a project specific class that holds thermal properties of the wall.', 
-          response: null,
-          responseError: null,
-          endpoint: 'class-create',
-          triples: this._ad.dymmyElementTriples
-        },
-        {
-          title: 'Assign dummy element class to all walls', 
-          description: 'All walls are assigned to the new Dummy Element class by doing string replacements in the wall assignment triples. In a real world situation these should be mapped by the engineer.', 
-          response: null,
-          responseError: null,
-          endpoint: 'class-assignment',
-          triples: this._ad.wallTriples
-            .replace('bot: <https://w3id.org/bot#>', 'ont: <http://localhost:3000/duplex/ice/ontology#>')
-            .replace(/bot:Element/g, 'ont:DummyElement')
         },
         {
           title: 'Assign properties to thermal environments', 
@@ -135,12 +107,40 @@ export class Step1Component implements OnInit {
           triples: this._ad.thermalEnvironmentPropertyTriples
         },
         {
+          title: 'Assign heated room class to all spaces', 
+          description: 'All spaces are assigned to the new HeatedRoom class by doing string replacements in the space assignment triples. In a real world situation these should be mapped by the engineer.', 
+          response: null,
+          responseError: null,
+          endpoint: 'class-assignment',
+          triples: this._ad.spaceTriples
+            .replace('bot: <https://w3id.org/bot#>', 'ont: <http://localhost:3000/duplex/ice/ontology#>')
+            .replace(/bot:Space/g, 'ont:HeatedRoom')
+        },
+        {
+          title: 'Create dummy ICE wall class', 
+          description: 'A dummy ICE wall class is created. This is a project specific class that holds thermal properties of the wall.', 
+          response: null,
+          responseError: null,
+          endpoint: 'class-create',
+          triples: this._ad.dymmyElementTriples
+        },
+        {
           title: 'Set U-value of dummy ICE wall element', 
           description: 'The dummy ICE wall class is assigned a U-value of 0.2 W/m2K.', 
           response: null,
           responseError: null,
           endpoint: 'class-property-assignment',
           triples: this._ad.dymmyElementPropertyTriples
+        },
+        {
+          title: 'Assign dummy element class to all walls', 
+          description: 'All walls are assigned to the new Dummy Element class by doing string replacements in the wall assignment triples. In a real world situation these should be mapped by the engineer.', 
+          response: null,
+          responseError: null,
+          endpoint: 'class-assignment',
+          triples: this._ad.wallTriples
+            .replace('bot: <https://w3id.org/bot#>', 'ont: <http://localhost:3000/duplex/ice/ontology#>')
+            .replace(/bot:Element/g, 'ont:DummyElement')
         }
       ]
 

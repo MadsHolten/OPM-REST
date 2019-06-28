@@ -538,7 +538,7 @@ WHERE{
     # GET CURRENT TIME STAMP AND ASSIGN IT TO VARIABLE ?now
     BIND(now() AS ?now)
 
-    # STRIP THE URI OF THE SPACE TO GENERATE URIs FOR NEW RESOURCES AS {host}/{guid}
+    # STRIP THE URI OF THE SPACE TO GENERATE URIs FOR NEW RESOURCES
     BIND(IRI(CONCAT(REPLACE(STR(?sp), "(?!([^/]*/){3}).*", "ice/interfaces/"), STRUUID())) AS ?interfaceURI)
     BIND(IRI(CONCAT(REPLACE(STR(?sp), "(?!([^/]*/){3}).*", "ice/states/"), STRUUID())) AS ?stateURI)
     BIND(IRI(CONCAT(REPLACE(STR(?sp), "(?!([^/]*/){4}).*", "ice/properties/"), STRUUID())) AS ?propURI)
