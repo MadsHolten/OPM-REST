@@ -47,15 +47,17 @@ export class Step4Component implements OnInit {
     }
 
     public async updateAll(){
-        this.getThermalEnvironmentProperties();
         await this.getCalculations();
+        console.log(this.calculations);
         this.getTree();
+        this.getThermalEnvironmentProperties();
     }
 
     public getCalculations(): Promise<void>{
         return new Promise((resolve, reject) => {
             this._as.getCalculations(this.backend, this.db).subscribe(res => {
                 this.calculations = res['@graph'] ? res['@graph'] : [res];
+                console.log(this.calculations)
                 resolve();
             }, err => {
                 console.log(err);

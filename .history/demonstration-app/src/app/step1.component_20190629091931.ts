@@ -166,8 +166,8 @@ export class Step1Component implements OnInit {
     }
 
     public uploadAll(){
-        this.rvtUploadData.forEach(async item => await this.uploadSingle(item));
-        this.miscUploadData.forEach(async item => await this.uploadSingle(item));
+        this.rvtUploadData.forEach(item => this.uploadSingle(item));
+        this.miscUploadData.forEach(item => this.uploadSingle(item));
     }
 
     public uploadSingle(item): Promise<void>{

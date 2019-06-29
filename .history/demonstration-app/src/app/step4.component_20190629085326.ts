@@ -184,6 +184,7 @@ export class Step4Component implements OnInit {
 
     public getThermalEnvironmentProperties(){
         this._as.getThermalEnvironmentProperties(this.backend, this.db).subscribe(res => {
+            console.log(res)
             if(res['@graph']){
                 this.thermalEnvProps = res['@graph'].map(item => {
                     const keys = Object.keys(item).filter(key => key != '@id');

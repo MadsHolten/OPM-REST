@@ -577,8 +577,8 @@ WHERE{
         {
             label: '"Temperature difference over thermal envelope segments"@en',
             argumentPaths: [
-                '?foi ice:surfaceExterior ?ext . ?ext a/rdfs:subClassOf+ ?restr1 . ?restr1 owl:onProperty props:designAmbientTemperature ; owl:hasValue ?te', 
-                '?foi ice:surfaceInterior ?int . ?int a/rdfs:subClassOf+ ?restr2 . ?restr2 owl:onProperty props:designAmbientTemperature ; owl:hasValue ?ti'],
+                '?foi ice:surfaceExterior ?ext . ?ext a/rdfs:subClassOf+ [ owl:onProperty props:designAmbientTemperature ; owl:hasValue ?te ]', 
+                '?foi ice:surfaceInterior ?int . ?int a/rdfs:subClassOf+ [ owl:onProperty props:designAmbientTemperature ; owl:hasValue ?ti ]'],
             comment: 'Temperature difference over surface at design conditions for heating.',
             userURI: 'https://www.niras.dk/employees/mhra',
             expression: "?ti-?te",
@@ -587,7 +587,7 @@ WHERE{
         {
             label: '"UA value for thermal envelope segments"@en',
             argumentPaths: [
-                '?foi ice:representsElement ?el . ?el a/rdfs:subClassOf+ ?restr . ?restr owl:onProperty props:thermalTransmittance ; owl:hasValue ?uVal', 
+                '?foi ice:representsElement ?el . ?el a/rdfs:subClassOf+ [ owl:onProperty props:thermalTransmittance ; owl:hasValue ?uVal ]', 
                 '?foi props:heatTransferSurfaceArea ?area'],
             comment: 'Multiplies the adjacent element´s U-value with the area of the surface',
             userURI: 'https://www.niras.dk/employees/mhra',
@@ -606,8 +606,8 @@ WHERE{
             label: '"Infiltration heat loss"@en',
             argumentPaths: [
                 '?sp props:area ?a',
-                '?sp a/rdfs:subClassOf+ ?restr1 . ?restr1 owl:onProperty props:designAmbientTemperature ; owl:hasValue ?ti', 
-                '?sp a/rdfs:subClassOf+ ?restr2 . ?restr2 owl:onProperty props:airFlowrateInfiltration ; owl:hasValue ?inf'],
+                '?sp a/rdfs:subClassOf+ [ owl:onProperty props:designAmbientTemperature ; owl:hasValue ?ti ]', 
+                '?sp a/rdfs:subClassOf+ [ owl:onProperty props:airFlowrateInfiltration ; owl:hasValue ?inf ]'],
             comment: 'Calculates infiltration heat loss as the product of spaceArea*infiltrationRatePerSqm*1.166*1.0075*(roomTemperature-(-12))',
             userURI: 'https://www.niras.dk/employees/mhra',
             expression: "?a*?inf*1.166*1.0075*(?ti-(-12))",
@@ -615,9 +615,10 @@ WHERE{
         },{
             label: '"Transmission heat loss for space"@en',
             argumentPaths: ['?foi a ice:ThermalEnvironment ; ^ice:surfaceInterior ?i . ?i props:totalHeatTransferRate ?htr'],
+            type: "sum",
             comment: 'Sums the transmission heat loss through all the parts of the building envelope which face the space.',
             userURI: 'https://www.niras.dk/employees/mhra',
-            expression: "sum(?htr)",
+            expression: "?htr",
             inferredProperty: 'props:transmissionHeatTransferRate'
         },{
             label: '"Total heat loss for space"@en',

@@ -47,9 +47,9 @@ export class Step4Component implements OnInit {
     }
 
     public async updateAll(){
-        this.getThermalEnvironmentProperties();
         await this.getCalculations();
         this.getTree();
+        this.getThermalEnvironmentProperties();
     }
 
     public getCalculations(): Promise<void>{

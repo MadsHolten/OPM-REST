@@ -615,9 +615,10 @@ WHERE{
         },{
             label: '"Transmission heat loss for space"@en',
             argumentPaths: ['?foi a ice:ThermalEnvironment ; ^ice:surfaceInterior ?i . ?i props:totalHeatTransferRate ?htr'],
+            type: "sum",
             comment: 'Sums the transmission heat loss through all the parts of the building envelope which face the space.',
             userURI: 'https://www.niras.dk/employees/mhra',
-            expression: "sum(?htr)",
+            expression: "?htr",
             inferredProperty: 'props:transmissionHeatTransferRate'
         },{
             label: '"Total heat loss for space"@en',

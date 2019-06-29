@@ -1,0 +1,83 @@
+{
+    "DEBUG": false,
+    "dataNamespace": "http://localhost:3000",
+    "triplestoreEndpoint": "http://localhost:3030",
+    "namespaces": [
+        {
+            "prefix": "cdt",
+            "uri": "http://w3id.org/lindt/custom_datatypes#"
+        },
+        {
+            "prefix": "prov",
+            "uri": "http://www.w3.org/ns/prov#"
+        },
+        {
+            "prefix": "bot",
+            "uri": "https://w3id.org/bot#"
+        },
+        {
+            "prefix": "ice",
+            "uri": "https://w3id.org/ice#"
+        },
+        {
+            "prefix": "fso",
+            "uri": "https://w3id.org/fso#"
+        },
+        {
+            "prefix": "opm",
+            "uri": "https://w3id.org/opm#"
+        },
+        {
+            "prefix": "props",
+            "uri": "https://w3id.org/props#"
+        },
+        {
+            "prefix": "prod",
+            "uri": "https://w3id.org/product#"
+        },
+        {
+            "prefix": "product",
+            "uri": "https://w3id.org/product#"
+        },
+        {
+            "prefix": "rdfs",
+            "uri": "http://www.w3.org/2000/01/rdf-schema#"
+        },
+        {
+            "prefix": "rdf",
+            "uri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        },
+        {
+            "prefix": "owl",
+            "uri": "http://www.w3.org/2002/07/owl#"
+        },
+        {
+            "prefix": "skos",
+            "uri": "http://www.w3.org/2004/02/skos/core#"
+        },
+        {
+            "prefix": "schema",
+            "uri": "http://schema.org/"
+        },
+        {
+            "prefix": "xsd",
+            "uri": "http://www.w3.org/2001/XMLSchema#"
+        }
+    ],
+    "typeMappings": [
+        {"category": "levels", "types": ["bot:Storey"]},
+        {"category": "rooms", "types": ["bot:Space"]},
+        {"category": "spaces", "types": ["bot:Space"]},
+        {"category": "walls", "types": ["bot:Element", "prod:Wall"]},
+        {"category": "floors", "types": ["bot:Element", "prod:Slab"]},
+        {"category": "windows", "types": ["bot:Element", "prod:Window"]},
+        {"category": "doors", "types": ["bot:Element", "prod:Door"]},
+        {"category": "stairs", "types": ["bot:Element", "prod:Stair"]},
+        {"category": "roofs", "types": ["bot:Element", "prod:Roof"]},
+        {"category": "pipes", "types": ["bot:Element", "fso:Segment", "prod:Pipe"]},
+        {"category": "pipe fittings", "types": ["bot:Element", "fso:Fitting", "prod:PipeFitting"]},
+        {"category": "ducts", "types": ["bot:Element", "fso:Segment", "prod:Duct"]},
+        {"category": "duct fittings", "types": ["bot:Element", "fso:Fitting", "prod:DuctFitting"]},
+        {"category": "mechanical equipment", "types": ["bot:Element", "fso:FlowTerminal"]}
+    ]
+}
