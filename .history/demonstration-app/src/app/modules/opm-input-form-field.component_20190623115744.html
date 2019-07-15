@@ -1,0 +1,34 @@
+<mat-form-field class="full-width">
+
+    <!-- Input field -->
+    <input matInput 
+        [type]="type"
+        [(ngModel)]="currentValue"
+        [placeholder]="placeholder"/>
+    <span *ngIf="suffix" matSuffix>{{suffix}}</span>
+    <mat-error *ngIf="errorMessage">{{errorMessage}}</mat-error>
+    <mat-hint *ngIf="hintMessage">{{hintMessage}}</mat-hint>
+
+    <!-- Buttons -->
+    <!-- Hide reset/save if there is no propertyURI defined (if it is the first time the property is defined) -->
+    <button mat-button
+        matTooltip="Gendan"
+        *ngIf="initialValue && initialValue != currentValue && propertyURI" 
+        matSuffix mat-icon-button aria-label="Reset" (click)="onResetProperty()">
+        <mat-icon>close</mat-icon>
+    </button>
+    <button mat-button
+        matTooltip="Opdater egenskab"
+        *ngIf="initialValue && initialValue != currentValue && propertyURI && !hideSaveOption" 
+        matSuffix mat-icon-button aria-label="Update" (click)="onUpdateProperty()">
+        <mat-icon>save</mat-icon>
+    </button>
+
+    <button mat-button 
+        *ngIf="historyCount > 1"
+        matTooltip="Der findes {{historyCount}} værdier for denne egenskab"
+        matSuffix mat-icon-button aria-label="History" (click)="onShowHistory()">
+        <mat-icon>history</mat-icon>
+    </button>
+
+</mat-form-field>

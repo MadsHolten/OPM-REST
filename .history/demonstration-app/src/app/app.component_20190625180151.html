@@ -1,0 +1,97 @@
+<mat-card class="canvas-card">
+
+  <span>
+      <img class="logo" style="width:50px;" src="./assets/niras-logo.svg">
+      <img class="logo" style="padding-left: 10px; width:20px;" src="./assets/DTU-logo.svg">
+  </span>
+
+  <h2>OPM for calculations</h2>
+  <span style="font-style: oblique">- the Ontology for property management</span>
+
+  <p style="font-size: 0.8em"><i>NB! This app is currently in development and there might therefore be bugs.</i></p>
+
+  <p>The purpose of this simple app is to demonstrate how to make operations 
+    on an Architecture, Engineering and Construction (AEC) Knowledge Graph 
+    with OPM-REST. Created by 
+    <a href="https://www.researchgate.net/profile/Mads_Holten_Rasmussen" target="blank">Mads 
+      Holten Rasmussen</a>.
+  </p>
+
+  <p>A journal paper that was submitted to Automation in Construction describes the purpose of <a href="https://w3id.org/opm#">OPM</a> in depth.</p>
+
+  <!-- Setup -->
+  <div style="padding-bottom: 10px">
+    <mat-accordion>
+
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title> Setup</mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <p>The app communicates with an <a href="https://github.com/MadsHolten/OPM-REST">OPM-REST API</a> which is designed to operate on an AEC-KG stored in a triplestore. 
+          It has been tested with the open source <a href="https://jena.apache.org/documentation/fuseki2/">Jena Fuseki</a> 
+          triplestore but should work with all triplestores that support the <a href="https://www.w3.org/TR/sparql11-protocol/">
+          SPARQL 1.1 Protocol</a>.</p>
+        
+        <h4>Setup</h4>
+
+        <ul>
+          <li>Make sure to have a (Jena Fuseki) triplestore running</li>
+          <li>Clone git repository <span class="code">$ git clone https://github.com/MadsHolten/OPM-REST.git</span></li>
+          <li>Install dependencies (requires nodejs) <span class="code">$ npm install</span></li>
+          <li>Specify `triplestoreEndpoint` and `dataNamespace` in the <i>config.json</i> file. The default values will work with a standard Fuseki installation</li>
+          <li>Start OPM-REST <span class="code">$ node index</span></li>
+        </ul>
+
+        <p>Extraction of triples from Revit to the <a href="https://github.com/MadsHolten/OPM-REST">OPM-REST API</a> can be accomplished
+        with the Dynamo scripts in <a href="https://github.com/MadsHolten/OPM-REST/tree/master/tools/dynamo-scripts">this folder</a></p>
+
+        <mat-form-field class="full-width">
+          <input matInput placeholder="OPM-REST endpoint" [ngModel]="backend">
+        </mat-form-field>
+      
+        <mat-form-field class="full-width">
+          <input matInput placeholder="Fuseki dataset name" [ngModel]="db">
+        </mat-form-field>
+
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+  
+  <mat-divider></mat-divider>
+
+  <!-- Stepper -->
+  <mat-horizontal-stepper [linear]="true" #stepper>
+
+    <!-- Add some data -->
+    <mat-step>
+
+      <ng-template matStepLabel>Load some data</ng-template>
+      <app-step1 [backend]="backend" [db]="db"></app-step1>
+
+    </mat-step>
+
+    <mat-step>
+      <ng-template matStepLabel>Create dummy interfaces</ng-template>
+      <app-step2 [backend]="backend" [db]="db"></app-step2>
+
+    </mat-step>
+
+    <!-- Perform calculations -->
+    <mat-step>
+      <ng-template matStepLabel>Create calculations</ng-template>
+      <app-step3 [backend]="backend" [db]="db"></app-step3>
+
+    </mat-step>
+
+    <!-- Simulate changes -->
+    <mat-step>
+      <ng-template matStepLabel>Use calculations</ng-template>
+      <app-step4 [backend]="backend" [db]="db"></app-step4>
+
+    </mat-step>
+
+
+  </mat-horizontal-stepper>
+
+</mat-card>

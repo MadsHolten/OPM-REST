@@ -1,0 +1,9 @@
+@prefix ont: <http://localhost:3000/duplex/ice/ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ice: <https://w3id.org/ice#> .
+@prefix bot: <https://w3id.org/bot#> .
+
+ont:DummyElement a owl:Class ;
+    rdfs:subClassOf bot:Element ;
+    rdfs:label "Dummy Element"@en .
