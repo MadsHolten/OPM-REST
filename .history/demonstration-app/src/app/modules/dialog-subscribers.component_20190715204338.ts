@@ -7,12 +7,11 @@ import * as _ from 'lodash';
     selector: 'dialog-history',
     template: `
         <h4>Property subscribers</h4>
-        <div *ngIf="subscribers && subscribers.length">
-            <p *ngIf="subscribers.length == 1"><b>{{subscribers.length}}</b> property depend on this property</p>
-            <p *ngIf="subscribers.length != 1"><b>{{subscribers.length}}</b> properties depend on this property</p>
-            <p *ngFor="let item of subscribers">- {{item}}</p>
+        <div *ngIf="data && data.hasSubscriber">
+            <p><b>{{data.hasSubscriber.length}}</b> properties depend on this property</p>
+            <p *ngFor="let item of data.hasSubscriber">- {{item}}</p>
         </div>
-        <p *ngIf="!subscribers || !subscribers.length">Property has no subscribers</p>`,
+        <p *ngIf="!data || !data.hasSubscriber">Property has no subscribers</p>`,
     styles: [`
         h4 {
             font-family: Roboto;
@@ -28,20 +27,13 @@ import * as _ from 'lodash';
 })
 export class DialogSubscribersComponent implements OnInit {
 
-    public subscribers = [];
-
     constructor(
         public dialogRef: MatDialogRef<DialogSubscribersComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any) { }
 
     ngOnInit(){
-
-        if(typeof this.data.hasSubscriber == 'string') {
-            this.subscribers.push(this.data.hasSubscriber)
-        }else{
-            this.subscribers = this.data.hasSubscriber;
-        }
-
+        console.log(this.data);
+        // this.data = _.orderBy(this.data, ['generatedAtTime'],['desc']);
     }
 
     // Close when clicking outside

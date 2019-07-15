@@ -532,14 +532,11 @@ WHERE{
             ice:representsElement ?el
     }
 
-    # GENERATE RANDOM NUMBER BETWEEN 1-11 AND ASSIGN IT TO VARIABLE ?area
+    # GENERATE RANDOM NUMBER BETWEEN 0-10 AND ASSIGN IT TO VARIABLE ?area
     BIND(round(rand()*10) AS ?area)
 
     # GET CURRENT TIME STAMP AND ASSIGN IT TO VARIABLE ?now
     BIND(now() AS ?now)
-
-    # FILTER OUT AREAS THAT HAVE AN AREA OF 0
-    FILTER(?area != 0)
 
     # STRIP THE URI OF THE SPACE TO GENERATE URIs FOR NEW RESOURCES AS {host}/{guid}
     BIND(IRI(CONCAT(REPLACE(STR(?sp), "(?!([^/]*/){3}).*", "ice/interfaces/"), STRUUID())) AS ?interfaceURI)
@@ -623,16 +620,16 @@ WHERE{
             expression: "sum(?htr)",
             inferredProperty: 'props:transmissionHeatTransferRate'
         },
-        {
-            label: '"Total heat loss for space"@en',
-            argumentPaths: [
-                '?foi props:transmissionHeatTransferRate ?tr', 
-                '?foi props:infiltrationHeatTransferRate ?inf'],
-            comment: 'Returns the sum of the infiltration heat loss and the transmission heat loss for each space.',
-            userURI: 'https://www.niras.dk/employees/mhra',
-            expression: "?tr+?inf",
-            inferredProperty: 'props:heatingDemand'
-        }
+        // {
+        //     label: '"Total heat loss for space"@en',
+        //     argumentPaths: [
+        //         '?foi props:transmissionHeatTransferRate ?tr', 
+        //         '?foi props:infiltrationHeatTransferRate ?inf'],
+        //     comment: 'Returns the sum of the infiltration heat loss and the transmission heat loss for each space.',
+        //     userURI: 'https://www.niras.dk/employees/mhra',
+        //     expression: "?tr+?inf",
+        //     inferredProperty: 'props:heatingDemand'
+        // }
     ]
 
 }

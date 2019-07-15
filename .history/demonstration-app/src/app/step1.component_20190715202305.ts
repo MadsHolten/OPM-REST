@@ -165,6 +165,7 @@ export class Step1Component implements OnInit {
     ngOnInit(): void { 
         this.cmConfigJSON.mode = 'javascript';
         this.cmConfigSPARQL.mode = 'application/sparql-query';
+        this.t0 = Date.now();
     }
 
     public uploadAll(){

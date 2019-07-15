@@ -165,14 +165,27 @@ export class Step1Component implements OnInit {
     ngOnInit(): void { 
         this.cmConfigJSON.mode = 'javascript';
         this.cmConfigSPARQL.mode = 'application/sparql-query';
+        this.t0 = Date.now();
     }
 
     public uploadAll(){
         this.rvtUploadData.forEach(async item => {
+          console.log('a')
+          var t1 = Date.now();
+          var dt = t1-this.t0;
+          console.log(dt);
+
           await this.uploadSingle(item);
+          await this._as.wait(500); // wait 200 ms between each call
         });
         this.miscUploadData.forEach(async item => {
+          console.log('b')
+          var t1 = Date.now();
+          var dt = t1-this.t0;
+          console.log(dt);
+
           await this.uploadSingle(item);
+          await this._as.wait(500); // wait 200 ms between each call
         });
     }
 

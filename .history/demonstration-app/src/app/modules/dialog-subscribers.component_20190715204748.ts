@@ -9,7 +9,7 @@ import * as _ from 'lodash';
         <h4>Property subscribers</h4>
         <div *ngIf="subscribers && subscribers.length">
             <p *ngIf="subscribers.length == 1"><b>{{subscribers.length}}</b> property depend on this property</p>
-            <p *ngIf="subscribers.length != 1"><b>{{subscribers.length}}</b> properties depend on this property</p>
+            <p *ngIf="subscribers.length < 1"><b>{{subscribers.length}}</b> properties depend on this property</p>
             <p *ngFor="let item of subscribers">- {{item}}</p>
         </div>
         <p *ngIf="!subscribers || !subscribers.length">Property has no subscribers</p>`,

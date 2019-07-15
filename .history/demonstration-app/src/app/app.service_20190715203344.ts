@@ -92,7 +92,7 @@ export class AppService {
             WHERE{
                 ?foi a bot:Space ;
                     props:area ?propURI .
-            } LIMIT 3`;
+            }`;
 
         return this.getQuery(host, db, q);
     }

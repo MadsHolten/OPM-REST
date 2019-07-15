@@ -10,7 +10,7 @@ import {  MatStepperModule, MatInputModule,
           MatFormFieldModule, MatCardModule,
           MatExpansionModule, MatButtonModule,
           MatSlideToggleModule, MatTooltipModule,
-          MatDividerModule, MatIconModule } from '@angular/material';
+          MatDividerModule } from '@angular/material';
 
 import { AppService } from './app.service';
 import { AppData } from './app.data';
@@ -42,7 +42,6 @@ import { OPMInputFormFieldModule } from './modules/opm-input-form-field.module';
     MatFormFieldModule,
     MatCardModule,
     MatExpansionModule,
-    MatIconModule,
     MatButtonModule,
     CodemirrorModule,
     MatSlideToggleModule,

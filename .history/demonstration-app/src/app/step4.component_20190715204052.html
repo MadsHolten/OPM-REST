@@ -111,10 +111,7 @@
         <codemirror [(ngModel)]="outdated" [config]="cmConfigJSON" class="full-width"></codemirror>
     </div>
 
-    <p>Below is a list of 3 spaces and their areas. Try changing one of the areas and refresh the list of outdated properties.
-        Note the <mat-icon>history</mat-icon>-icon that shows up after clicking save. Clicking this icon will reveal the full
-        history of the property's states.
-    </p>
+    <p>Below is a list of 3 spaces and their areas. Try changing one of the areas and refresh the list of outdated properties</p>
     <div *ngFor="let item of spaceAreas">
         {{item['@id']}}
         <opm-input-form-field
@@ -125,10 +122,7 @@
     </div>
 
     <!-- Properties of thermal environments -->
-    <p>Below is a list of thermal environments and their assosiated properties. Try changing one of the values that has "subscribers". 
-        Subscribers are properties that depend on the value of the particular property. The subscribers are returned when clicking the 
-        <mat-icon>compare_arrows</mat-icon>-symbol.
-    </p>
+    <p>Below is a list of thermal environments and their assosiated properties. Try</p>
 
     <mat-accordion *ngIf="thermalEnvProps">
 

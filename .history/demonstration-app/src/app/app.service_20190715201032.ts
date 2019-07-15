@@ -83,20 +83,6 @@ export class AppService {
         return this.getQuery(host, db, q);
     }
 
-    public getSpaceAreas(host, db){
-        var q = `
-            PREFIX props: <https://w3id.org/props#>
-            CONSTRUCT{
-                ?foi props:area ?propURI .
-            }
-            WHERE{
-                ?foi a bot:Space ;
-                    props:area ?propURI .
-            } LIMIT 3`;
-
-        return this.getQuery(host, db, q);
-    }
-
     public wait = (milliseconds) => {
         return new Promise(resolve => setTimeout(resolve, milliseconds))
     }

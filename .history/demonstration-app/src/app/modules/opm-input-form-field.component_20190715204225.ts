@@ -116,7 +116,7 @@ export class OPMInputFormFieldComponent implements ControlValueAccessor, OnChang
 
     onShowSubscribers(){
         this._s.getSubscribers(this.propertyURI).subscribe(res => {
-            
+            console.log(res)
             let dialogRef = this.dialog.open(DialogSubscribersComponent, {
                 height: '300px',
                 width: '500px',

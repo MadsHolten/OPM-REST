@@ -155,8 +155,6 @@ export class Step1Component implements OnInit {
     public cmConfigJSON = this.cmConfigTTL;
     public cmConfigSPARQL = this.cmConfigTTL;
 
-    public t0;
-
     constructor(
         private _ad: AppData,
         private _as: AppService
@@ -169,10 +167,14 @@ export class Step1Component implements OnInit {
 
     public uploadAll(){
         this.rvtUploadData.forEach(async item => {
+          console.log('a')
           await this.uploadSingle(item);
+          await this._as.wait(200); // wait 200 ms between each call
         });
         this.miscUploadData.forEach(async item => {
+          console.log('b')
           await this.uploadSingle(item);
+          await this._as.wait(200); // wait 200 ms between each call
         });
     }
 

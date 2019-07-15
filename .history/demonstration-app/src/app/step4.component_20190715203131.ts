@@ -199,7 +199,7 @@ export class Step4Component implements OnInit {
     public getSpaceAreas(){
         this._as.getSpaceAreas(this.backend, this.db).subscribe(res => {
             if(res['@graph']){
-                this.spaceAreas = res['@graph'];
+                console.log(res['@graph'])
             }
         }, err => console.log(err))
     }
