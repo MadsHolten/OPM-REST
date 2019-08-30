@@ -5,7 +5,7 @@ const config = require('../../../../../config.json');
 const urljoin = require('url-join');
 const jsonld = require('jsonld');
 
-const OPMCalc = require('../../../../../../opm-qg/dist').OPMCalc;   // NB! For local development only!
+const OPMCalc = require('opm-qg').OPMCalc;   // NB! For local development only!
 
 module.exports = (app) => {
 
