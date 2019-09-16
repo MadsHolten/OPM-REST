@@ -61,9 +61,11 @@ module.exports = (app) => {
                 var msg = count == 0 ? 'There were no new calculation results to insert' : `successfully inserted ${count} calculation results.`;
 
                 // Append
-                calcData.queryType = 'insert';
-                query = opmCalc.postCalc(calcData);
-                config.DEBUG && console.log('---\n'+query);
+                if(count > 0){
+                    calcData.queryType = 'insert';
+                    query = opmCalc.postCalc(calcData);
+                    config.DEBUG && console.log('---\n'+query);
+                }
 
                 await fuseki.updateQuery(projNo, query);
 

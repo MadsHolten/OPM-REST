@@ -1,6 +1,7 @@
 const fuseki = require('../../../../helpers/fuseki-connection');
 const uriGen = require('../../../../helpers/uri-create');
 const config = require('../../../../../config.json');
+const urljoin = require('url-join');
 
 module.exports = (app) => {
 
