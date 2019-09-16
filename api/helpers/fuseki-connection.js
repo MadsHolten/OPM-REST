@@ -4,7 +4,11 @@ const path = require('path')
 const fs = require('fs')
 const ldt = require('./ld-tools')
 
-var baseURI = config.triplestoreEndpoint
+// Set base URI and authentication settings
+const baseURI = process.env.FUSEKI_HOST ? process.env.FUSEKI_HOST : config.triplestoreEndpoint;
+const auth = `Basic ${Buffer.from(process.env.FUSEKI_USER + ":" + process.env.FUSEKI_PASS).toString('base64')}`;
+console.log(baseURI);
+console.log(auth);
 
 var mainObject = {};
 
@@ -21,7 +25,8 @@ mainObject.getQuery = async (dbName, q, mimeType) => {
             query: q
         },
         headers: {
-            'Accept': mimeType
+            'Accept': mimeType,
+            'Authorization': auth
         },
         json: true
     };
@@ -37,7 +42,8 @@ mainObject.updateQuery = async (dbName,q) => {
         uri: `${baseURI}/${dbName}/update`,
         form: {
             update: q
-        }
+        },
+        headers: { 'Authorization': auth }
     };
 
     return rp(options);
@@ -54,7 +60,8 @@ mainObject.loadFile = async (dbName, filePath, namedGraph) => {
         method: 'POST',
         uri: uri,
         headers: {
-            'content-type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW'
+            'content-type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW',
+            'Authorization': auth
         },
         formData: {
             'files[]': {
