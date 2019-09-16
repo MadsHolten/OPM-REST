@@ -44,10 +44,22 @@ module.exports = (app) => {
         // Re-append calculation and return 
         try{
             if(materialize){
+
+                // Count number of results
+                query = opmCalc.putByCalcURI(calculationURI, 'count');
+                process.env.DEBUG && console.log('---\n'+query);
+
+                var count = await fuseki.getQuery(projNo, query);
+                count = count.results.bindings[0].count.value;
+                process.env.DEBUG && console.log('---\n'+count+' new results to insert');
+                var msg = count == 0 ? 'There were no new calculation results to insert' : `successfully inserted ${count} calculation results.`;
+
                 // Append
-                calcData.queryType = 'insert';
-                query = opmCalc.putCalc(calcData);
-                config.DEBUG && console.log('---\n'+query);
+                if(count > 0){
+                    calcData.queryType = 'insert';
+                    query = opmCalc.putCalc(calcData);
+                    config.DEBUG && console.log('---\n'+query);
+                }
                 
                 await fuseki.updateQuery(projNo, query);
 
