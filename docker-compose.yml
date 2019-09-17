@@ -1,0 +1,31 @@
+version: '2'
+
+services:
+  opm-rest:
+    build: ./rest-api
+    container_name: opm-rest
+    restart: on-failure
+    ports:
+    - "3000:3000"
+    environment:
+      - PORT=3000
+      - DEBUG=true
+      - FUSEKI_HOST=http://fuseki:3030
+      - FUSEKI_USER=admin
+      - FUSEKI_PASS=admin
+    links:
+      - fuseki
+
+  fuseki:
+    container_name: fuseki-db
+    restart: on-failure
+    image: stain/jena-fuseki
+    ports:
+      - "3030:3030"
+    volumes:
+      - fuseki-data:/fuseki
+      - ./fuseki-staging:/staging
+      - ./shiro.ini:/fuseki/shiro.ini
+  
+volumes:
+  fuseki-data:
