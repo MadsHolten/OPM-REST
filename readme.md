@@ -10,6 +10,9 @@ Steps to run the OPM-REST backend with [Docker Desktop](https://www.docker.com/p
 2. run command `cd OPM-REST` to enter the directory
 3. run command `docker-compose build`
 4. run command `docker-compose up`
+5. Go to [http://localhost:3030/](http://localhost:3030/) and check that a local Fuseki is running (Default user/pass = *admin/admin*)
+6. Create a new dataset (*manage datasets -> add new dataset*)
+7. Go through the steps of the [demonstration app](https://madsholten.github.io/OPM-REST/demonstration-app/dist/demonstration-app/) and learn how OPM works!
 
 
 ## SETTINGS
