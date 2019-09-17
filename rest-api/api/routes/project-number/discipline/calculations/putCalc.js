@@ -46,7 +46,8 @@ module.exports = (app) => {
             if(materialize){
 
                 // Count number of results
-                query = opmCalc.putByCalcURI(calculationURI, 'count');
+                calcData.queryType = 'count';
+                query = opmCalc.putCalc(calcData);
                 process.env.DEBUG && console.log('---\n'+query);
 
                 var count = await fuseki.getQuery(projNo, query);
