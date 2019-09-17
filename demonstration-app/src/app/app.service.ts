@@ -4,13 +4,25 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import * as urljoin from 'url-join';
+import { Globals, FusekiSettings } from './app.globals';
 
 @Injectable()
 export class AppService {
 
+    public db: string;
+    public auth: string;
+
     constructor(
-        private _http: HttpClient
+        private _http: HttpClient,
+        private _globals: Globals
     ){}
+
+    public getFusekiSettings(){
+        this._globals.getFusekiSettings().subscribe(res => {
+            this.db = res.db;
+            this.auth = `Basic ${window.btoa(res.user + ':' + res.pass)}`;
+        })
+    }
 
     public batchOPMAssign(host, db, ep, triples): Observable<string>{
         const url = urljoin(host, db, 'opm-upload', ep);
@@ -19,10 +31,13 @@ export class AppService {
 
     public getQuery(host, db, query, mimeType?): Observable<any>{
 
+        this.getFusekiSettings();
+
         const url = urljoin(host, db, 'query');
 
         var params: any = {query};
-        var options: any = {};
+        var headers: any = {'Authorization': this.auth};
+        var options: any = {headers};
 
         if(mimeType){
             params.mimeType = mimeType;
@@ -36,10 +51,13 @@ export class AppService {
 
     public updateQuery(host, db, query): Observable<any>{
 
+        this.getFusekiSettings();
+
         const url = urljoin(host, db, 'update');
         var params: any = {query};
+        var headers: any = {'Authorization': this.auth};
 
-        return this._http.get(url, {params, responseType: 'text'});
+        return this._http.get(url, {params, headers, responseType: 'text'});
 
     }
 

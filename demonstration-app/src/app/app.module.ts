@@ -14,6 +14,7 @@ import {  MatStepperModule, MatInputModule,
 
 import { AppService } from './app.service';
 import { AppData } from './app.data';
+import { Globals } from './app.globals';
 
 import { CodemirrorModule } from 'ng2-codemirror';
 
@@ -52,7 +53,8 @@ import { OPMInputFormFieldModule } from './modules/opm-input-form-field.module';
   ],
   providers: [
     AppService,
-    AppData
+    AppData,
+    Globals
   ],
   bootstrap: [AppComponent]
 })
