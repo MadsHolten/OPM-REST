@@ -12,8 +12,6 @@ var mainObject = {};
 
 mainObject.getQuery = async (dbName, q, mimeType) => {
 
-    console.log(auth)
-
     q = ldt.appendPrefixesToQuery(q);
 
     if(!mimeType) mimeType = 'application/sparql-results+json';
@@ -36,8 +34,6 @@ mainObject.getQuery = async (dbName, q, mimeType) => {
 }
 
 mainObject.updateQuery = async (dbName,q) => {
-
-    console.log(auth)
     
     var options = {
         method: 'POST',
@@ -52,8 +48,6 @@ mainObject.updateQuery = async (dbName,q) => {
 }
 
 mainObject.loadFile = async (dbName, filePath, namedGraph) => {
-
-    console.log(auth)
 
     // Extract file name from path
     var fileName = path.basename(filePath);
