@@ -51,6 +51,8 @@ module.exports = (app) => {
 
             try{
                 await _loadInStore(projNo, tempFilePath);
+                config.DEBUG && console.log('  Project '+projNo);
+                config.DEBUG && console.log('  - '+msg);
                 res.send(msg);
             }catch(e){
                 next({msg: e.message, status: e.status})
@@ -74,6 +76,8 @@ module.exports = (app) => {
 
                 try{
                     await _loadInStore(projNo, tempFilePath);
+                    config.DEBUG && console.log('  Project '+projNo);
+                    config.DEBUG && console.log('  - '+msg);
                     res.send(msg);
                 }catch(e){
                     next({msg: e.message, status: e.status})

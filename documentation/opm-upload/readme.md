@@ -2,8 +2,12 @@
 
 
 
-### 1. /:projectNumber/opm-upload/class-assignment
-A POST request to this route with a turtle file as payload is accepted. The expected triple format is:
+### 1. /:projectNumber/opm-upload/class-assignment?sourceID=:myModel
+A POST request to this route with a turtle file as payload is accepted. 
+
+An optional *sourceID* query parameter can be provided. This will default to "opm-batch" if nothing is given, but it is recommended to use something which is unique for the source and which will persist with the next batch uploads. For example the model name. The source ID is used to compare existing instances with the new instances comming from the same source. If an instance exists in the store but is not part of the new batch it will be marked as deleted (see below).
+
+The expected triple format is:
 
 ```turtle
 <el> a <someClass> .
@@ -13,7 +17,15 @@ The triples are inserted in a temporary graph in the Fuseki dataset (matched by 
 
 ```turtle
 <el> a <someClass> ;
-    prov:generatedAtTime "currentTime"^^xsd:dateTime .
+    prov:generatedAtTime "currentTime"^^xsd:dateTime ;
+    opm:sourceID "someID" .
+```
+
+Deleted triples will not be removed from the store but the following information will be added:
+
+```turtle
+<el> a opm:Deleted ;
+    prov:invalidatedAtTime "currentTime"^^xsd:dateTime .
 ```
 
 ![class-assignment image](./class-assignment.png "class-assignment image")

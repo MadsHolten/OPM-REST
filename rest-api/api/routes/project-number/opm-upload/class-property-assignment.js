@@ -57,6 +57,8 @@ module.exports = (app) => {
             // Do all the OPM stuff
             try{
                 const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
+                config.DEBUG && console.log('  Project '+projNo);
+                config.DEBUG && console.log('  - '+msg);
                 res.send(msg);
             }catch(e){
                 next({msg: e.message, status: e.status});
@@ -81,6 +83,8 @@ module.exports = (app) => {
                 // Do all the OPM stuff
                 try{
                     const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
+                    config.DEBUG && console.log('  Project '+projNo);
+                    config.DEBUG && console.log('  - '+msg);
                     res.send(msg);
                 }catch(e){
                     next({msg: e.message, status: e.status});
