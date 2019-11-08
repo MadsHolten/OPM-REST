@@ -20,4 +20,4 @@ COPY . /usr/src/app
 # Expose the port the app runs in
 EXPOSE 3000
 
-CMD ["nodemon", "-L", "index.js"]
+#CMD ["nodemon", "-L", "index.js"]

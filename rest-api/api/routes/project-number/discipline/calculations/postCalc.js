@@ -12,7 +12,7 @@ module.exports = (app) => {
     // APPEND CALCULATION
     app.post('/:projNo/:discipline/calculations/:id', async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: POST /:projNo/:discipline/calculations/:id");
+        process.env.DEBUG && console.log("Route: POST /:projNo/:discipline/calculations/:id");
 
         // URL params
         const projNo = req.params.projNo;
@@ -22,10 +22,10 @@ module.exports = (app) => {
         // Query params
         const materialize = req.query.materialize;
 
-        config.DEBUG && console.log('---\nMaterialize: '+query);
+        process.env.DEBUG && console.log('---\nMaterialize: '+query);
 
         // Build URI and initialize OPMCalc
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
         const calculationURI = urljoin(namespace, 'calculations', id);
         const opmCalc = new OPMCalc(namespace, config.namespaces);
 
@@ -34,12 +34,12 @@ module.exports = (app) => {
         try{
             // Build query with OPM-QG
             var query = opmCalc.getCalcData({calculationURI});
-            config.DEBUG && console.log('---\n'+query);
+            process.env.DEBUG && console.log('---\n'+query);
 
             // Run query
             var qRes = await fuseki.getQuery(projNo, query, 'application/ld+json');
             calcData = await _transformRes(qRes);
-            config.DEBUG && console.log('---\n'+JSON.stringify(calcData, null, 2));
+            process.env.DEBUG && console.log('---\n'+JSON.stringify(calcData, null, 2));
 
             calcData.calculationURI = calculationURI;
         }catch(e){
@@ -53,18 +53,18 @@ module.exports = (app) => {
                 // Count number of results
                 calcData.queryType = 'count';
                 query = opmCalc.postCalc(calcData);
-                config.DEBUG && console.log('---\n'+query);
+                process.env.DEBUG && console.log('---\n'+query);
 
                 var count = await fuseki.getQuery(projNo, query);
                 count = count.results.bindings[0].count.value;
-                config.DEBUG && console.log('---\n'+count+' new results to insert');
+                process.env.DEBUG && console.log('---\n'+count+' new results to insert');
                 var msg = count == 0 ? 'There were no new calculation results to insert' : `successfully inserted ${count} calculation results.`;
 
                 // Append
                 if(count > 0){
                     calcData.queryType = 'insert';
                     query = opmCalc.postCalc(calcData);
-                    config.DEBUG && console.log('---\n'+query);
+                    process.env.DEBUG && console.log('---\n'+query);
                 }
 
                 await fuseki.updateQuery(projNo, query);
@@ -73,7 +73,7 @@ module.exports = (app) => {
             }else{
                 calcData.queryType = 'construct';
                 query = opmCalc.postCalc(calcData);
-                config.DEBUG && console.log('---\n'+query);
+                process.env.DEBUG && console.log('---\n'+query);
 
                 var inserted = await fuseki.getQuery(projNo, query, 'application/ld+json');
                 res.send(inserted);

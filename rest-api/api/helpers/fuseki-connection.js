@@ -5,7 +5,7 @@ const fs = require('fs')
 const ldt = require('./ld-tools')
 
 // Set base URI and authentication settings
-const baseURI = process.env.FUSEKI_HOST ? process.env.FUSEKI_HOST : config.triplestoreEndpoint;
+const baseURI = process.env.FUSEKI_HOST;
 const auth = `Basic ${Buffer.from(process.env.FUSEKI_USER + ":" + process.env.FUSEKI_PASS).toString('base64')}`;
 
 var mainObject = {};

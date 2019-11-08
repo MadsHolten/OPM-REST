@@ -1,7 +1,4 @@
 {
-    "DEBUG": true,
-    "dataNamespace": "http://localhost:3000",
-    "triplestoreEndpoint": "http://localhost:3030",
     "namespaces": [
         {
             "prefix": "cdt",
@@ -62,6 +59,10 @@
         {
             "prefix": "xsd",
             "uri": "http://www.w3.org/2001/XMLSchema#"
+        },
+        {
+            "prefix": "nir",
+            "uri": "http://web-bim/ontology#"
         }
     ],
     "typeMappings": [

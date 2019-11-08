@@ -10,12 +10,12 @@ module.exports = (app) => {
     // GET CALCULATIONS
     app.get('/:projNo/:discipline/calculations', async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: GET /:projNo/:discipline/calculations");
+        process.env.DEBUG && console.log("Route: GET /:projNo/:discipline/calculations");
 
         // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
 
         const opmCalc = new OPMCalc(namespace, config.prefixes);
         const q = opmCalc.listCalculations();
@@ -32,12 +32,12 @@ module.exports = (app) => {
     // GET OUTDATED CALCULATIONS
     app.get('/:projNo/:discipline/calculations/outdated', async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: GET /:projNo/:discipline/calculations/outdated");
+        process.env.DEBUG && console.log("Route: GET /:projNo/:discipline/calculations/outdated");
 
         // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
 
         const opmCalc = new OPMCalc(namespace, config.prefixes);
         const q = opmCalc.getOutdated();
@@ -60,7 +60,7 @@ module.exports = (app) => {
         check('inferredProperty').exists()
     ], async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: POST /:projNo/:discipline/calculations");
+        process.env.DEBUG && console.log("Route: POST /:projNo/:discipline/calculations");
 
         // Check for validation errors
         const errors = validationResult(req);
@@ -71,7 +71,7 @@ module.exports = (app) => {
         // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
 
         // Get body
         const body = req.body;
@@ -93,19 +93,19 @@ module.exports = (app) => {
     // GET SPECIFIC CALCULATION
     app.get('/:projNo/:discipline/calculations/:id', async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: GET /:projNo/:discipline/calculations/:id");
+        process.env.DEBUG && console.log("Route: GET /:projNo/:discipline/calculations/:id");
 
         // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
         const id = req.params.id;
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
         const calculationURI = urljoin(namespace, 'calculations', id);
 
         const opmCalc = new OPMCalc(namespace);
         const q = opmCalc.getCalcData({calculationURI});
 
-        config.DEBUG && console.log("---\n"+q);
+        process.env.DEBUG && console.log("---\n"+q);
         
         try{
             var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');

@@ -26,7 +26,7 @@ module.exports = (app) => {
     // DESCRIBE RESOURCE
     app.post('/:projNo/opm-upload/class-assignment', async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: POST /:projNo/opm-upload/class-assignment");
+        process.env.DEBUG && console.log("Route: POST /:projNo/opm-upload/class-assignment");
 
         // Get project number and set global variable
         projectNumber = req.params.projNo;
@@ -41,7 +41,7 @@ module.exports = (app) => {
         if(!sourceID) sourceID = 'opm-batch';
 
         // Make URI for temp graph
-        tempGraphURI = urljoin(config.dataNamespace, projectNumber, 'class-ass-temp');
+        tempGraphURI = urljoin(process.env.DATA_NAMESPACE, projectNumber, 'class-ass-temp');
 
         // Get content type header
         const contentType = req.headers['content-type'];
@@ -70,8 +70,8 @@ module.exports = (app) => {
             // // Do all the OPM stuff
             try{
                 const msg = await _opmMain(tempFilePath);
-                config.DEBUG && console.log('  Project '+projectNumber);
-                config.DEBUG && console.log('  - '+msg);
+                process.env.DEBUG && console.log('  Project '+projectNumber);
+                process.env.DEBUG && console.log('  - '+msg);
                 res.send(msg);
             }catch(e){
                 next({msg: e.message, status: e.status})
@@ -96,8 +96,8 @@ module.exports = (app) => {
                 // // Do all the OPM stuff
                 try{
                     const msg = await _opmMain(tempFilePath, tempGraphURI);
-                    config.DEBUG && console.log('  Project '+projectNumber);
-                    config.DEBUG && console.log('  - '+msg);
+                    process.env.DEBUG && console.log('  Project '+projectNumber);
+                    process.env.DEBUG && console.log('  - '+msg);
                     res.send(msg);
                 }catch(e){
                     next({msg: e.message, status: e.status})

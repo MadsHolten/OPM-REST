@@ -11,19 +11,19 @@ module.exports = (app) => {
     // GET PROPERTIES
     app.get('/:projNo/:discipline/properties', async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: GET /:projNo/:discipline/properties");
+        process.env.DEBUG && console.log("Route: GET /:projNo/:discipline/properties");
 
         // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);    
+        const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);    
         
         try{
             // Build query with OPM-QG
             const opmProp = new OPMProp(namespace);
             const q = opmProp.getAllProps();
             
-            config.DEBUG && console.log(q);
+            process.env.DEBUG && console.log(q);
 
             // Run query
             var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
@@ -37,13 +37,13 @@ module.exports = (app) => {
     // GET SPECIFIC PROPERTY
     app.get('/:projNo/:discipline/properties/:id', async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: GET /:projNo/:discipline/properties/:id");
+        process.env.DEBUG && console.log("Route: GET /:projNo/:discipline/properties/:id");
 
         // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
         const id = req.params.id;
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
         const propURI = urljoin(namespace, 'properties', id);
         
         try{
@@ -64,20 +64,19 @@ module.exports = (app) => {
     // GET PROPERTY SUBSCRIBERS
     app.get('/:projNo/:discipline/properties/:id/subscribers', async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: GET /:projNo/:discipline/properties/:id/subscribers");
+        process.env.DEBUG && console.log("Route: GET /:projNo/:discipline/properties/:id/subscribers");
 
         // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
         const id = req.params.id;
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
         const propertyURI = urljoin(namespace, 'properties', id);
         
         try{
             // Generate OPM query
             const opmCalc = new OPMCalc(namespace);
             const q = opmCalc.getSubscribers({propertyURI});
-            console.log(q);
 
             // Execute query
             var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
@@ -92,29 +91,124 @@ module.exports = (app) => {
     // UPDATE PROPERTY
     app.put('/:projNo/:discipline/properties/:id', async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: PUT /:projNo/:discipline/properties/:id");
+        process.env.DEBUG && console.log("Route: PUT /:projNo/:discipline/properties/:id");
 
         // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
         const id = req.params.id;
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
         const propertyURI = urljoin(namespace, 'properties', id);
+
+        // Get URL parameter materialize
+        // This is only used for calculations and indicates if the user only wants to see the result or
+        // Wants to materialize it in the graph
+        const materialize = req.query.materialize && req.query.materialize == 'true' ? true : false;
 
         // Get body
         const body = req.body.value;
-        const value = `"${body.value}"^^<${body.type}>`;
 
-        try{
-            // Generate OPM query
-            const opmProp = new OPMProp(namespace);
-            const q = opmProp.putProperty(propertyURI, value);
+        // If a value is provided in the body, update the value by inserting a new property state
+        if(body && body.value){
+            const value = `"${body.value}"^^<${body.type}>`;
 
-            // Execute update query
-            await fuseki.updateQuery(projNo, q);
-            res.send({msg: "Successfully updated property"});
-        }catch(e){
-            next({msg: e.message, status: e.status});
+            try{
+                // Generate OPM query
+                const opmProp = new OPMProp(namespace);
+                const q = opmProp.putProperty(propertyURI, value);
+
+                // Execute update query
+                await fuseki.updateQuery(projNo, q);
+                res.send({msg: "Successfully updated property"});
+            }catch(e){
+                next({msg: e.message, status: e.status});
+            }
+        }
+
+        // If a value is not provided it is probably a derived property
+        // Check if this is the case and update the calculated value
+        if(!body || !body.value){
+
+            // Check if it is attributed to some calculation
+            try{
+                // The following query will return the calculation data only if one or more of the arguments is outdated
+                var q = 
+                `CONSTRUCT{
+                    ?calculationURI ?key ?val ;
+                    opm:argumentPaths ?list .
+                    ?listRest rdf:first ?head ;
+                    rdf:rest ?tail .
+                }
+                WHERE{
+                    BIND(<${propertyURI}> AS?property)
+                    ?property opm:hasPropertyState ?previousState .
+                    ?previousState a opm:CurrentPropertyState ;
+                    prov:wasAttributedTo ?calculationURI ;
+                    prov:wasDerivedFrom ?arg .
+                    
+                    ?arg a opm:OutdatedPropertyState .
+                    
+                    ?calculationURI ?key ?val ;
+                    opm:argumentPaths ?list .
+                    ?list rdf:rest* ?listRest .
+                    ?listRest rdf:first ?head ;
+                    rdf:rest ?tail .
+                }`;
+
+                var calcData;
+                try{
+                    var graph = await fuseki.getQuery(projNo, q, 'application/ld+json');
+
+                    const context = {
+                        "@context": {
+                            "@vocab": "https://w3id.org/opm#",
+                            "calculationURI" : "@id",
+                            "inferredProperty": {"@id": "inferredProperty", "@type": "@id"},
+                            "foiRestriction": {"@id": "foiRestriction", "@type": "@id"},
+                            "argumentPaths": {"@id": "argumentPaths", "@container": "@list"}
+                        }
+                    };
+                
+                    calcData = await jsonld.compact(graph, context);
+                }catch(e){
+                    console.log(e);
+                    next({msg: e, status: 500});
+                }
+                
+                
+                if(calcData){
+
+                    calcData.propertyURI = propertyURI;
+                    calcData.queryType = materialize ? 'insert' : 'construct';
+
+                    try{
+                        // Generate OPM query
+                        const opmCalc = new OPMCalc(namespace, config.namespaces);
+                        const q = opmCalc.putCalc(calcData);
+
+                        if(materialize){
+                            // Execute update query
+                            await fuseki.updateQuery(projNo, q);
+                            res.send({msg: "Successfully updated property"});
+                        }else{
+                            // Execute get query
+                            const qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
+                            res.send(qRes);
+                        }
+                        
+                    }catch(e){
+                        next({msg: e, status: 500});
+                    }
+
+
+                }else{
+                    next({msg: "No new value was provided and the property is not a derived property.", status: 400});
+                }
+
+            }catch(e){
+                next({msg: e.message, status: e.status});
+            }
+
         }
 
     })

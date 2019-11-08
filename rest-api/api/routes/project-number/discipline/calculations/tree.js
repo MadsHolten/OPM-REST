@@ -10,12 +10,12 @@ module.exports = (app) => {
     // CALCULATE THE EXECUTION TREE
     app.get('/:projNo/:discipline/calculations/tree', async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: GET /:projNo/:discipline/calculations/tree");
+        process.env.DEBUG && console.log("Route: GET /:projNo/:discipline/calculations/tree");
 
         // Get URL params
         const projNo = req.params.projNo;
         const discipline = req.params.discipline;
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
 
         // Get all calculations
         try{

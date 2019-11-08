@@ -10,7 +10,7 @@ module.exports = (app) => {
     // RE-APPNED CALCULATION
     app.put('/:projNo/:discipline/calculations/:id', async (req, res, next) => {
 
-        config.DEBUG && console.log("Route: PUT /:projNo/:discipline/calculations/:id");
+        process.env.DEBUG && console.log("Route: PUT /:projNo/:discipline/calculations/:id");
 
         // URL params
         const projNo = req.params.projNo;
@@ -21,7 +21,7 @@ module.exports = (app) => {
         const materialize = req.query.materialize;
 
         // Build URI and initialize OPMCalc
-        const namespace = urljoin(config.dataNamespace, projNo, discipline);
+        const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
         const calculationURI = urljoin(namespace, 'calculations', id);
         const opmCalc = new OPMCalc(namespace, config.namespaces);
 
@@ -30,7 +30,7 @@ module.exports = (app) => {
         try{
             // Build query with OPM-QG
             var query = opmCalc.getCalcData({calculationURI});
-            config.DEBUG && console.log('---\n'+query);
+            process.env.DEBUG && console.log('---\n'+query);
 
             // Run query
             var qRes = await fuseki.getQuery(projNo, query, 'application/ld+json');
@@ -59,7 +59,7 @@ module.exports = (app) => {
                 if(count > 0){
                     calcData.queryType = 'insert';
                     query = opmCalc.putCalc(calcData);
-                    config.DEBUG && console.log('---\n'+query);
+                    process.env.DEBUG && console.log('---\n'+query);
                 }
                 
                 await fuseki.updateQuery(projNo, query);
@@ -69,7 +69,7 @@ module.exports = (app) => {
                 // Build query with OPM-QG
                 calcData.queryType = 'construct';
                 query = opmCalc.putCalc(calcData);
-                config.DEBUG && console.log('---\n'+query);
+                process.env.DEBUG && console.log('---\n'+query);
 
                 var inserted = await fuseki.getQuery(projNo, query, 'application/ld+json');
                 res.send(inserted);
