@@ -14,6 +14,7 @@ services:
       - FUSEKI_HOST=http://fuseki:3030
       - FUSEKI_USER=admin
       - FUSEKI_PASS=admin
+    command: npm run dev
     links:
       - fuseki
 
