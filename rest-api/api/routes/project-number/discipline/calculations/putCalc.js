@@ -60,11 +60,10 @@ module.exports = (app) => {
                     calcData.queryType = 'insert';
                     query = opmCalc.putCalc(calcData);
                     process.env.DEBUG && console.log('---\n'+query);
+                    await fuseki.updateQuery(projNo, query);
                 }
                 
-                await fuseki.updateQuery(projNo, query);
-
-                res.send({msg: 'Successfully updated calculations.'});
+                res.send({msg});
             }else{
                 // Build query with OPM-QG
                 calcData.queryType = 'construct';

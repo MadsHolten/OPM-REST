@@ -65,9 +65,8 @@ module.exports = (app) => {
                     calcData.queryType = 'insert';
                     query = opmCalc.postCalc(calcData);
                     process.env.DEBUG && console.log('---\n'+query);
+                    await fuseki.updateQuery(projNo, query);
                 }
-
-                await fuseki.updateQuery(projNo, query);
 
                 res.send({msg});
             }else{

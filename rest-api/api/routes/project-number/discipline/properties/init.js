@@ -175,8 +175,8 @@ module.exports = (app) => {
                     next({msg: e, status: 500});
                 }
                 
-                
-                if(calcData){
+                // If proper calculation data was returned, continue
+                if(calcData['@type']){
 
                     calcData.propertyURI = propertyURI;
                     calcData.queryType = materialize ? 'insert' : 'construct';
@@ -200,9 +200,9 @@ module.exports = (app) => {
                         next({msg: e, status: 500});
                     }
 
-
+                // If no calculation data was retrieved the property might not be outdated
                 }else{
-                    next({msg: "No new value was provided and the property is not a derived property.", status: 400});
+                    res.send({msg: "No new value was provided and if the property is a derived property it is up to date."});
                 }
 
             }catch(e){
