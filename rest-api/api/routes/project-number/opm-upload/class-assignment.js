@@ -207,6 +207,9 @@ const _getDeleted = async () => {
             # GET EXISTING CLASS ASSIGNMENTS OF THINGS WITH THE CURRENT SOURCE ID
             ?s a ?class ;
                 opm:sourceID "${sourceID}" .
+            
+            # Must not be classified as deleted already
+            MINUS{ ?s a opm:Deleted }
 
             # MUST NOT EXIST IN TEMP GRAPH
             FILTER NOT EXISTS {
