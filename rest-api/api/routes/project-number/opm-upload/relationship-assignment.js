@@ -20,7 +20,7 @@ module.exports = (app) => {
     // DESCRIBE RESOURCE
     app.post('/:projNo/opm-upload/relationship-assignment', async (req, res, next) => {
 
-        process.env.DEBUG && console.log("Route: POST /:projNo/opm-upload/relationship-assignment");
+        process.env.DEBUG && console.log(`Route: POST /${req.params.projNo}/opm-upload/relationship-assignment`);
 
         // Get data
         const projNo = req.params.projNo
@@ -51,8 +51,7 @@ module.exports = (app) => {
 
             try{
                 await _loadInStore(projNo, tempFilePath);
-                process.env.DEBUG && console.log('  Project '+projNo);
-                process.env.DEBUG && console.log('  - '+msg);
+                process.env.DEBUG && console.log('  - '+msg+'\n');
                 res.send(msg);
             }catch(e){
                 next({msg: e.message, status: e.status})
@@ -76,8 +75,7 @@ module.exports = (app) => {
 
                 try{
                     await _loadInStore(projNo, tempFilePath);
-                    process.env.DEBUG && console.log('  Project '+projNo);
-                    process.env.DEBUG && console.log('  - '+msg);
+                    process.env.DEBUG && console.log('  - '+msg+'\n');
                     res.send(msg);
                 }catch(e){
                     next({msg: e.message, status: e.status})

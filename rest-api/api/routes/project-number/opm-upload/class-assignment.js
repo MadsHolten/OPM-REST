@@ -26,7 +26,7 @@ module.exports = (app) => {
     // DESCRIBE RESOURCE
     app.post('/:projNo/opm-upload/class-assignment', async (req, res, next) => {
 
-        process.env.DEBUG && console.log("Route: POST /:projNo/opm-upload/class-assignment");
+        process.env.DEBUG && console.log(`Route: POST /${req.params.projNo}/opm-upload/class-assignment`);
 
         // Get project number and set global variable
         projectNumber = req.params.projNo;
@@ -70,8 +70,7 @@ module.exports = (app) => {
             // // Do all the OPM stuff
             try{
                 const msg = await _opmMain(tempFilePath);
-                process.env.DEBUG && console.log('  Project '+projectNumber);
-                process.env.DEBUG && console.log('  - '+msg);
+                process.env.DEBUG && console.log('  - '+msg+'\n');
                 res.send(msg);
             }catch(e){
                 next({msg: e.message, status: e.status})
@@ -96,8 +95,7 @@ module.exports = (app) => {
                 // // Do all the OPM stuff
                 try{
                     const msg = await _opmMain(tempFilePath, tempGraphURI);
-                    process.env.DEBUG && console.log('  Project '+projectNumber);
-                    process.env.DEBUG && console.log('  - '+msg);
+                    process.env.DEBUG && console.log('  - '+msg+'\n');
                     res.send(msg);
                 }catch(e){
                     next({msg: e.message, status: e.status})

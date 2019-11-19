@@ -28,6 +28,8 @@ services:
       - fuseki-data:/fuseki
       - ./fuseki-staging:/staging
       - ./shiro.ini:/fuseki/shiro.ini
+    logging:
+      driver: none
   
 volumes:
   fuseki-data:
