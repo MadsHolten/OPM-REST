@@ -24,7 +24,7 @@ module.exports = (app) => {
     })
 
     // Get query by POST method
-    api.post('/:projNo/query', async (req, res, next) => {
+    app.post('/:projNo/query', async (req, res, next) => {
  
         // Get URL params
         const projNo = req.params.projNo;
