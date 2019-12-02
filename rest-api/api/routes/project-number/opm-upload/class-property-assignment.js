@@ -172,7 +172,7 @@ const _opmBatchClassPropertyCreate = (tempGraphURI, queryType) => {
                 owl:onProperty ?prop ;
                 owl:hasValue ?propURI .
             ?propURI opm:hasPropertyState ?stateURI .
-            ?stateURI a opm:CurrentPropertyState , opm:InitialPropertyState ;
+            ?stateURI a opm:PropertyState , opm:CurrentPropertyState , opm:InitialPropertyState ;
                 schema:value ?val ;
                 prov:generatedAtTime ?now ;
                 prov:wasAttributedTo "Arch-Revit-Model" .
@@ -223,7 +223,7 @@ const _opmBatchClassPropertyUpdate = (tempGraphURI, queryType) => {
         }
 
         q+= `?propURI opm:hasPropertyState ?stateURI .
-                ?stateURI a opm:CurrentPropertyState ;
+                ?stateURI a opm:PropertyState , opm:CurrentPropertyState ;
                     schema:value ?newVal ;
                     prov:generatedAtTime ?now ;
                     prov:wasAttributedTo "Arch-Revit-Model" .

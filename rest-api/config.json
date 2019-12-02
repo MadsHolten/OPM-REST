@@ -62,7 +62,7 @@
         },
         {
             "prefix": "nir",
-            "uri": "http://web-bim/ontology#"
+            "uri": "https://www.bim.niras.com/ontology#"
         }
     ],
     "typeMappings": [
