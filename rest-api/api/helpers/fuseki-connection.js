@@ -29,6 +29,8 @@ mainObject.getQuery = async (dbName, q, mimeType) => {
         json: true
     };
 
+    console.log(options);
+
     return rp(options);
 
 }
