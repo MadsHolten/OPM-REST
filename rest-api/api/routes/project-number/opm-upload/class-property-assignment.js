@@ -222,7 +222,8 @@ const _opmBatchClassPropertyUpdate = (tempGraphURI, queryType) => {
             q+= `CONSTRUCT {\n`
         }
 
-        q+= `?propURI opm:hasPropertyState ?stateURI .
+        q+= `?previousState a opm:OutdatedPropertyState .
+            ?propURI opm:hasPropertyState ?stateURI .
                 ?stateURI a opm:PropertyState , opm:CurrentPropertyState ;
                     schema:value ?newVal ;
                     prov:generatedAtTime ?now ;
