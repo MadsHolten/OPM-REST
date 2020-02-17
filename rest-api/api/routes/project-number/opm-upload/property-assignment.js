@@ -31,7 +31,8 @@ module.exports = (app) => {
         const tempGraphURI = urljoin(process.env.DATA_NAMESPACE, projNo, 'prop-ass-temp');
 
         // Get content type header
-        const contentType = req.headers['content-type']
+        const contentType = req.headers['content-type'];
+        if(!contentType || contentType == undefined) return next({msg: "Please specify a content-type header", status: 400});
 
         // Set content-type of response
         res.type('text/plain')
@@ -41,7 +42,7 @@ module.exports = (app) => {
             const triples = req.body;
 
             // Throw error if no data recieved
-            if(!triples) next({msg: "No triples recieved", status: 400})
+            if(!triples) return next({msg: "No triples recieved", status: 400})
 
             const fileName = uuidv4().toString();
             const tempFilePath = path.join(tempUploadFolder, fileName);
@@ -50,7 +51,7 @@ module.exports = (app) => {
             try{
                 await writeFile(tempFilePath, triples)
             }catch(e){
-                next({msg: e, status: 500})
+                return next({msg: e, status: 500})
             }
             
             // Do all the OPM stuff
@@ -59,7 +60,7 @@ module.exports = (app) => {
                 process.env.DEBUG && console.log('  - '+msg+'\n');
                 res.send(msg)
             }catch(e){
-                next({msg: e.message, status: e.status})
+                return next({msg: e.message, status: e.status})
             }
         }
 
@@ -70,10 +71,10 @@ module.exports = (app) => {
             upload(req, res, async (err) => {
 
                 // Throw error if no file recieved
-                if(!req.file) next({msg: "No file recieved", status: 400})
+                if(!req.file) return next({msg: "No file recieved", status: 400})
 
                 // Throw error if upload fails
-                if(err) next({msg: "File upload failed", status: 422})
+                if(err) return next({msg: "File upload failed", status: 422})
 
                 // Get temp file path
                 const tempFilePath = path.join(tempUploadFolder, req.file.filename)
@@ -84,7 +85,7 @@ module.exports = (app) => {
                     process.env.DEBUG && console.log('  - '+msg+'\n');
                     res.send(msg)
                 }catch(e){
-                    next({msg: e.message, status: e.status})
+                    return next({msg: e.message, status: e.status})
                 }
 
             })
@@ -109,7 +110,7 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
         var x = await fuseki.getQuery(projNo, q)
         var countNew = x.results.bindings.length
     }catch(e){
-        next({msg: e.message, status: e.status})
+        return next({msg: e.message, status: e.status})
     }
 
     // Query to count the number of properties that will be updated
@@ -118,7 +119,7 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
         var x = await fuseki.getQuery(projNo, q);
         var countUpdated = x.results.bindings.length
     }catch(e){
-        next({msg: e.message, status: e.status})
+        return next({msg: e.message, status: e.status})
     }
 
     if(countNew != 0){
