@@ -20,6 +20,7 @@ var upload = multer({
 var projectNumber;
 var tempGraphURI;
 var sourceID;
+var dsURI;
 
 module.exports = (app) => {
 
@@ -31,6 +32,10 @@ module.exports = (app) => {
         // Get project number and set global variable
         projectNumber = req.params.projNo;
         sourceID = req.query.sourceID;
+        dsURI = req.query.dsURI;
+
+        console.log(dsURI);
+        if(!dsURI) console.log("DS URI IKKE MODTAGET!");
 
         // A source ID is used for deletion
         // When recieving new class assignments a check to the existing instances will be made

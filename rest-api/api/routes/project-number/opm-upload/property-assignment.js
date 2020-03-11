@@ -35,7 +35,7 @@ module.exports = (app) => {
         if(!contentType || contentType == undefined) return next({msg: "Please specify a content-type header", status: 400});
 
         // Set content-type of response
-        res.type('text/plain')
+        res.type('text/plain');
 
         // Handle text
         if(contentType.indexOf('multipart/form-data') == -1){
@@ -49,8 +49,10 @@ module.exports = (app) => {
 
             // Write triples to a file
             try{
-                await writeFile(tempFilePath, triples)
+                await writeFile(tempFilePath, triples);
+                console.log("Wrote local file");
             }catch(e){
+                console.log("Not possible to write triples to local file.");
                 return next({msg: e, status: 500})
             }
             
@@ -60,6 +62,7 @@ module.exports = (app) => {
                 process.env.DEBUG && console.log('  - '+msg+'\n');
                 res.send(msg)
             }catch(e){
+                console.log("Something failed");
                 return next({msg: e.message, status: e.status})
             }
         }
@@ -98,7 +101,13 @@ module.exports = (app) => {
 const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
 
     // Upload file to temp graph in triplestore
-    await fuseki.loadFile(projNo, tempFilePath, tempGraphURI)
+    try{
+        await fuseki.loadFile(projNo, tempFilePath, tempGraphURI);
+        console.log("Successfully loaded triples in temp graph.");
+    }catch(e){
+        console.log("Not possible to load triples into a temp graph.");
+        throw new Error("Not possible to load triples into a temp graph.");
+    }
 
     // Delete temp file (returns promise)
     var deleteTempPromise = deleteFile(tempFilePath)
@@ -110,8 +119,8 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
         var x = await fuseki.getQuery(projNo, q)
         var countNew = x.results.bindings.length
     }catch(e){
-	console.log("Failed counting number of new properties to be added.");
-        return next({msg: e.message, status: e.status})
+        console.log("Not possible to count number of new properties.");
+        return next({msg: e.message, status: e.status});
     }
 
     // Query to count the number of properties that will be updated
@@ -120,38 +129,50 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
         var x = await fuseki.getQuery(projNo, q);
         var countUpdated = x.results.bindings.length
     }catch(e){
-	console.log("Failed counting number of existing properties to be updated.");
-        return next({msg: e.message, status: e.status})
+        console.log("Not possible to count number of updated properties.");
+        return next({msg: e.message, status: e.status});
     }
 
     if(countNew != 0){
         // Insert new properties
         q = _opmBatchCreate(tempGraphURI, 'insert')
-	try{
-      	    await fuseki.updateQuery(projNo,q);
-	}catch(e){
-	    console.log("Failed writing new properties.");
+        try{
+            await fuseki.updateQuery(projNo,q);
+        }catch(e){
+            console.log("Not possible to insert new properties.");
             return next({msg: e.message, status: e.status});
-	}
+        }
+        
     }
 
     if(countUpdated != 0){
         // Insert new property states
-        q = _opmBatchUpdate(tempGraphURI, 'insert')
+        q = _opmBatchUpdate(tempGraphURI, 'insert');
         try{
- 	     await fuseki.updateQuery(projNo,q);
-	}catch(e){
-            console.log("Failed writing new property states.");
+            await fuseki.updateQuery(projNo,q);
+        }catch(e){
+            console.log("Not possible to insert new property states.");
             return next({msg: e.message, status: e.status});
-	}
+        }
+        
     }
 
     // Clear temp graph
-    q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`
-    await fuseki.updateQuery(projNo,q);
+    q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`;
+    try{
+        await fuseki.updateQuery(projNo,q);
+    }catch(e){
+        console.log("Not possible to clear temp graph.");
+        return next({msg: e.message, status: e.status});
+    }
 
     // Make sure temp file was deleted
-    await deleteTempPromise;
+    try{
+        await deleteTempPromise;
+    }catch(e){
+        console.log("Not possible to delete temp triples file.");
+        return next({msg: e.message, status: e.status});
+    }
 
     return `Assigned ${countNew} new properties and updated ${countUpdated} existing properties`;
 
