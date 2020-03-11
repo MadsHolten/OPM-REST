@@ -110,6 +110,7 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
         var x = await fuseki.getQuery(projNo, q)
         var countNew = x.results.bindings.length
     }catch(e){
+	console.log("Failed counting number of new properties to be added.");
         return next({msg: e.message, status: e.status})
     }
 
@@ -119,19 +120,30 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
         var x = await fuseki.getQuery(projNo, q);
         var countUpdated = x.results.bindings.length
     }catch(e){
+	console.log("Failed counting number of existing properties to be updated.");
         return next({msg: e.message, status: e.status})
     }
 
     if(countNew != 0){
         // Insert new properties
         q = _opmBatchCreate(tempGraphURI, 'insert')
-        await fuseki.updateQuery(projNo,q);
+	try{
+      	    await fuseki.updateQuery(projNo,q);
+	}catch(e){
+	    console.log("Failed writing new properties.");
+            return next({msg: e.message, status: e.status});
+	}
     }
 
     if(countUpdated != 0){
         // Insert new property states
         q = _opmBatchUpdate(tempGraphURI, 'insert')
-        await fuseki.updateQuery(projNo,q);
+        try{
+ 	     await fuseki.updateQuery(projNo,q);
+	}catch(e){
+            console.log("Failed writing new property states.");
+            return next({msg: e.message, status: e.status});
+	}
     }
 
     // Clear temp graph
