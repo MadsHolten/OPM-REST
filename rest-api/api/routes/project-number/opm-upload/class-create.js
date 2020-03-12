@@ -16,6 +16,9 @@ var upload = multer({
     dest: tempUploadFolder
 }).single('file')
 
+// GLOBAL VARIABLES
+var dsURI;
+
 module.exports = (app) => {
 
     // DESCRIBE RESOURCE
@@ -24,7 +27,13 @@ module.exports = (app) => {
         process.env.DEBUG && console.log(`Route: POST /${req.params.projNo}/opm-upload/class-create`);
 
         // Get data
-        const projNo = req.params.projNo
+        const projNo = req.params.projNo;
+
+        // A data source URI (dsURI) is optional, but required for deletion (and general insights)
+        // When recieving new class creation, a check to the existing classes from the same data source will be made
+        // Any existing class which belongs to the same dsURI and which is not found in the new
+        // batch will be marked as opm:Deleted
+        dsURI = req.query.dsURI;
 
         // Make URI for temp graph
         const tempGraphURI = urljoin(process.env.DATA_NAMESPACE, projNo, 'class-create-temp');
@@ -105,6 +114,39 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
     // Delete temp file (returns promise)
     var deleteTempPromise = deleteFile(tempFilePath)
 
+    // Count number of new classes that will be created
+    var countNew = 0;
+    try{
+        var countNew = await _countNew();
+    }catch(e){
+        return next({msg: e.message, status: e.status});
+    }
+
+    // Insert new class assignments if such exist
+    if(countNew !== 0){
+        try{
+            await _writeNewClasses();
+            msg = `Successfully created ${countNew} classes`;
+        }catch(e){
+            console.log(e);
+            return next({msg: e.message, status: e.status});
+        }
+    }else{
+        msg = `All classes already exist in the main graph.`;
+    }
+
+    // Make sure temp file was deleted
+    await deleteTempPromise;
+
+    // Clear temp graph
+    var q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`;
+    await fuseki.updateQuery(projNo,q);
+
+    return msg;
+
+}
+
+const _countNew = async () => {
     // Query to count the number of new classes that will be created
     var q = `
     PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -120,57 +162,39 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
         }
     }`;
 
-    try{
-        var x = await fuseki.getQuery(projNo, q);
-        var count = x.results.bindings.length;
-    }catch(e){
-        return next({msg: e.message, status: e.status});
-    }
+    var x = await fuseki.getQuery(projectNumber, q);
+    const count = x.results.bindings.length;
 
-    if(count == 0){
-        msg = `All classes already exist in the main graph.`;
-    }
+    return count;
+}
 
-    else{
-        msg = `Successfully created ${count} classes`;
+// Put all new classes and their static properties (revit ID, GUID etc.) 
+// in the main graph with a new time stamp assigned
+const _writeNewClasses = async () => {
 
-        // Put all new classes and their static properties (revit ID, GUID etc.) 
-        // in the main graph with a new time stamp assigned
-        q = `
-            PREFIX owl: <http://www.w3.org/2002/07/owl#>
-            PREFIX prov: <http://www.w3.org/ns/prov#>
-            INSERT {
-                ?s a owl:Class ;
-                    ?key ?val ;
-                    prov:generatedAtTime ?now
-            }
-            WHERE {
-                # GET NEW CLASS ASSIGNMENTS FROM TEMP GRAPH
-                GRAPH <${tempGraphURI}> {
-                    ?s a owl:Class ;
-                        ?key ?val .
-                }
-                # MUST NOT ALREADY EXIST IN MAIN GRAPH
-                MINUS {
-                    ?s a owl:Class
-                }
-                BIND(NOW() as ?now)
-            }`;
+    let ds = dsURI ? `opm:dataSource <${dsURI}> ;` : "";
 
-        try{
-            await fuseki.updateQuery(projNo,q);
-        }catch(e){
-            return next({msg: e.message, status: e.status});
+    q = `
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        PREFIX prov: <http://www.w3.org/ns/prov#>
+        INSERT {
+            ?s a owl:Class ;
+                ?key ?val ;
+                ${ds}
+                prov:generatedAtTime ?now
         }
-    }
+        WHERE {
+            # GET NEW CLASS ASSIGNMENTS FROM TEMP GRAPH
+            GRAPH <${tempGraphURI}> {
+                ?s a owl:Class ;
+                    ?key ?val .
+            }
+            # MUST NOT ALREADY EXIST IN MAIN GRAPH
+            MINUS {
+                ?s a owl:Class
+            }
+            BIND(NOW() as ?now)
+        }`;
 
-    // Make sure temp file was deleted
-    await deleteTempPromise;
-
-    // Clear temp graph
-    var q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`;
-    await fuseki.updateQuery(projNo,q);
-
-    return msg;
-
+    return fuseki.updateQuery(projectNumber,q);
 }

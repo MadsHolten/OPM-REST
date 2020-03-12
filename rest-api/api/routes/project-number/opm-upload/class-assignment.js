@@ -19,7 +19,6 @@ var upload = multer({
 // GLOBAL VARIABLES
 var projectNumber;
 var tempGraphURI;
-var sourceID;
 var dsURI;
 
 module.exports = (app) => {
@@ -31,19 +30,12 @@ module.exports = (app) => {
 
         // Get project number and set global variable
         projectNumber = req.params.projNo;
-        sourceID = req.query.sourceID;
-        dsURI = req.query.dsURI;
 
-        console.log(dsURI);
-        if(!dsURI) console.log("DS URI IKKE MODTAGET!");
-
-        // A source ID is used for deletion
-        // When recieving new class assignments a check to the existing instances will be made
-        // Any existing instance which belongs to this sync ID and which is not found in the new
+        // A data source URI (dsURI) is optional, but required for deletion (and general insights)
+        // When recieving new class assignment, a check to the existing instances will be made.
+        // Any existing instance which belongs to this dsURI and which is not found in the new
         // batch will be marked as opm:Deleted
-        // The name of the Revit model could for example be used as an ID
-        // If no ID is provided, the default 'opm-batch' will be used
-        if(!sourceID) sourceID = 'opm-batch';
+        dsURI = req.query.dsURI;
 
         // Make URI for temp graph
         tempGraphURI = urljoin(process.env.DATA_NAMESPACE, projectNumber, 'class-ass-temp');
@@ -125,7 +117,7 @@ const _opmMain = async (tempFilePath) => {
     // Delete temp file (returns promise)
     var deleteTempPromise = deleteFile(tempFilePath)
 
-    // Count number of new triples that will be created
+    // Count number of new class assignments that will be created
     var countNew = 0;
     try{
         countNew = await _countNew();
@@ -134,7 +126,7 @@ const _opmMain = async (tempFilePath) => {
         return next({msg: e.message, status: e.status});
     }
 
-    // Insert new classes if such exist
+    // Insert new class assignments if such exist
     if(countNew !== 0){
         try{
             await _writeNewClasses();
@@ -145,22 +137,25 @@ const _opmMain = async (tempFilePath) => {
     }
 
     // Count number of deleted triples that should be marked as opm:Deleted
+    // This is only possible if a dsURI is provided
     var deletedInstances = [];
-    try{
-        deletedInstances = await _getDeleted();
-    }catch(e){
-        console.log(e);
-        return next({msg: e.message, status: e.status});
-    }
-    const countDeleted = deletedInstances.length;
-
-    // Mark deleted classes
-    if(countDeleted !== 0){
+    if(dsURI){
         try{
-            await _deleteClasses(deletedInstances);
+            deletedInstances = await _getDeleted();
         }catch(e){
             console.log(e);
             return next({msg: e.message, status: e.status});
+        }
+        const countDeleted = deletedInstances.length;
+
+        // Mark deleted classes
+        if(countDeleted !== 0){
+            try{
+                await _deleteClasses(deletedInstances);
+            }catch(e){
+                console.log(e);
+                return next({msg: e.message, status: e.status});
+            }
         }
     }
 
@@ -208,9 +203,9 @@ const _getDeleted = async () => {
         PREFIX opm: <https://w3id.org/opm#>
         SELECT DISTINCT ?s
         WHERE {
-            # GET EXISTING CLASS ASSIGNMENTS OF THINGS WITH THE CURRENT SOURCE ID
+            # GET EXISTING CLASS ASSIGNMENTS OF THINGS WITH MATCHING DATA SOURCES
             ?s a ?class ;
-                opm:sourceID "${sourceID}" .
+                opm:dataSource <${dsURI}> .
             
             # Must not be classified as deleted already
             MINUS{ ?s a opm:Deleted }
@@ -254,13 +249,15 @@ const _deleteClasses = async (URIs) => {
 // in the main graph with a new time stamp assigned
 const _writeNewClasses = async () => {
 
+    let ds = dsURI ? `opm:dataSource <${dsURI}> ;` : "";
+
     q = `
         PREFIX prov: <http://www.w3.org/ns/prov#>
         PREFIX opm: <https://w3id.org/opm#>
         INSERT {
             ?s a ?class ;
                 ?key ?val ;
-                opm:sourceID "${sourceID}" ;
+                ${ds}
                 prov:generatedAtTime ?now
         }
         WHERE {
