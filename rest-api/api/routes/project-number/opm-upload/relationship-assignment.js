@@ -1,3 +1,4 @@
+const m = require('./methods');
 const fuseki = require('../../../helpers/fuseki-connection')
 const config = require('../../../../config.json')
 const path = require('path')
@@ -15,6 +16,10 @@ var upload = multer({
     dest: tempUploadFolder
 }).single('file')
 
+// GLOBAL VARIABLES
+var projectNumber;
+var dsURI;
+
 module.exports = (app) => {
 
     // DESCRIBE RESOURCE
@@ -23,8 +28,8 @@ module.exports = (app) => {
         process.env.DEBUG && console.log(`Route: POST /${req.params.projNo}/opm-upload/relationship-assignment`);
 
         // Get data
-        const projNo = req.params.projNo
-        var msg = 'Successfully assigned relationships';    // Default message
+        projectNumber = req.params.projNo
+        dsURI = req.query.dsURI;
 
         // Get content type header
         const contentType = req.headers['content-type'];
@@ -51,7 +56,7 @@ module.exports = (app) => {
             }
 
             try{
-                await _loadInStore(projNo, tempFilePath);
+                const msg = await _opmMain(projectNumber, tempFilePath);
                 process.env.DEBUG && console.log('  - '+msg+'\n');
                 res.send(msg);
             }catch(e){
@@ -75,7 +80,7 @@ module.exports = (app) => {
                 const tempFilePath = path.join(tempUploadFolder, req.file.filename)
 
                 try{
-                    await _loadInStore(projNo, tempFilePath);
+                    const msg = await _opmMain(projectNumber, tempFilePath);
                     process.env.DEBUG && console.log('  - '+msg+'\n');
                     res.send(msg);
                 }catch(e){
@@ -88,10 +93,25 @@ module.exports = (app) => {
 
 }
 
-const _loadInStore = async (projNo, tempFilePath) => {
+const _opmMain = async (projectNumber, tempFilePath) => {
+
+    var msg = 'Successfully assigned relationships';    // Default message
+
+    await _loadInStore(projectNumber, tempFilePath);
+
+    if(dsURI){
+        msg = "***OPM-REST SYNC LOG***\nSuccessfully performed relationship-assignment task.\n\n"+msg;
+        await m.writeLog(projectNumber, msg, dsURI);
+    }
+
+    return msg;
+
+}
+
+const _loadInStore = async (projectNumber, tempFilePath) => {
 
     // Upload file to the main graph
-    await fuseki.loadFile(projNo, tempFilePath)
+    await fuseki.loadFile(projectNumber, tempFilePath)
 
     // Delete temp file (returns promise)
     await deleteFile(tempFilePath)

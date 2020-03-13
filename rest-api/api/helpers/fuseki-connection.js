@@ -78,4 +78,25 @@ mainObject.loadFile = async (dbName, filePath, namedGraph) => {
 
 }
 
+// Currently only supporting JSON-LD
+mainObject.loadTriples = async (dbName, triples, mimeType, namedGraph) => {
+
+    var uri = `${baseURI}/${dbName}/data`;
+
+    var options = {
+        method: 'POST',
+        uri: uri,
+        headers: {
+            'content-type': mimeType,
+            'Authorization': auth
+        },
+        body: JSON.stringify(triples)
+    };
+
+    if(namedGraph) options.qs = {graph: namedGraph};
+
+    return rp(options);
+
+}
+
 module.exports = mainObject;

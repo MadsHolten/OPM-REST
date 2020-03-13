@@ -1,3 +1,4 @@
+const m = require('./methods');
 const fuseki = require('../../../helpers/fuseki-connection')
 const ldTools = require('../../../helpers/ld-tools')
 const config = require('../../../../config.json')
@@ -20,6 +21,7 @@ var upload = multer({
 // GLOBAL VARIABLES
 var projectNumber;
 var tempGraphURI;
+var dsURI;
 
 module.exports = (app) => {
 
@@ -29,7 +31,8 @@ module.exports = (app) => {
         process.env.DEBUG && console.log(`Route: POST /${req.params.projNo}/opm-upload/property-assignment`);
 
         // Get data
-        projectNumber = req.params.projNo
+        projectNumber = req.params.projNo;
+        dsURI = req.query.dsURI;
 
         // Make URI for temp graph
         tempGraphURI = urljoin(process.env.DATA_NAMESPACE, projectNumber, 'prop-ass-temp');
@@ -104,6 +107,8 @@ module.exports = (app) => {
 
 const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
+    var msg;
+
     // Upload file to temp graph in triplestore
     await fuseki.loadFile(projectNumber, tempFilePath, tempGraphURI);
 
@@ -111,19 +116,33 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
     var deleteTempPromise = deleteFile(tempFilePath)
 
     // Count the number of new properties that will be created
-    const countNew = await _opmBatchCreate(tempGraphURI, 'select')
+    const {newStates, newTriples} = await _opmBatchCreate();
+    countNew = newStates.length;
 
     // Count the number of properties that will be updated
-    const countUpdated = await _opmBatchUpdate(tempGraphURI, 'select')
+    const {updatedStates, updatedTriples} = await _opmBatchUpdate();
+    const countUpdated = updatedStates.length;
 
     // Insert new properties
-    if(countNew != 0) await _opmBatchCreate(tempGraphURI, 'insert');
+    if(countNew != 0)  await fuseki.loadTriples(projectNumber, newTriples, 'application/ld+json');
         
-    // Insert new property states
-    if(countUpdated != 0) await _opmBatchUpdate(tempGraphURI, 'insert');
+    // Insert updated property states
+    if(countUpdated != 0){
+        let promises = [
+            fuseki.loadTriples(projectNumber, updatedTriples, 'application/ld+json'),
+            _opmMarkOutdated()
+        ];
+        await Promise.all(promises);
+    }
 
     // Clear temp graph
-    await _clearTempGraph();
+    await m.clearTempGraph(projectNumber, tempGraphURI);
+
+    if(dsURI){
+        msg = "***OPM-REST SYNC LOG***\nSuccessfully performed property-assignment task.\n\n"+msg;
+        let affectedURIs = newStates.concat(updatedStates);
+        await m.writeLog(projectNumber, msg, dsURI, affectedURIs);
+    }
 
     // Make sure temp file was deleted
     await deleteTempPromise;
@@ -132,83 +151,48 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
 }
 
-const _opmBatchCreate = async (tempGraphURI, queryType) => {
+const _opmBatchCreate = async () => {
 
-    if(!queryType) queryType = "select";
-
-    q = "";
-        
-    if(queryType.toLowerCase() == 'select'){
-        q+= "SELECT DISTINCT ?foiURI ?prop\n";
-    }else{
-        q+= `${queryType.toUpperCase()} {`;
-        
-        q+= `?foiURI ?prop ?propURI .
+    let q = `CONSTRUCT{
+            ?foiURI ?prop ?propURI .
             ?propURI opm:hasPropertyState ?stateURI .
             ?stateURI a opm:PropertyState , opm:CurrentPropertyState , opm:InitialPropertyState ;
                 schema:value ?val ;
                 prov:generatedAtTime ?now ;
                 prov:wasAttributedTo "Arch-Revit-Model" .
-            }\n`;
-    }
-
-    q+= `WHERE {
+        }
+        WHERE {
             GRAPH <${tempGraphURI}> {
                 ?foiURI ?prop ?val
             }
             MINUS {
                 ?foiURI ?prop ?x
-            }`;
-
-    if(queryType.toLowerCase() != 'select'){
-        q+= `BIND(IRI(CONCAT(REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "properties/"), STRUUID())) AS ?propURI)
+            }
+            BIND(IRI(CONCAT(REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "properties/"), STRUUID())) AS ?propURI)
             BIND(IRI(CONCAT(REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "states/"), STRUUID())) AS ?stateURI)
-            BIND(NOW() AS ?now)\n`;
-    }
-
-    q+= `}`;
-
+            BIND(NOW() AS ?now)
+        }`;
+    
     q = ldTools.appendPrefixesToQuery(q);
 
-    if(queryType == 'select'){
-        var x = await fuseki.getQuery(projectNumber, q);
-        return x.results.bindings.length;
-    }else if(queryType == 'insert'){
-        return fuseki.updateQuery(projectNumber, q);
-    }else{
-        throw new Error("Please specify a valid query type");
-    }
+    let newTriples = await fuseki.getQuery(projectNumber, q, 'application/ld+json');
+
+    let newStates = [];
+    if(newTriples['@graph']){
+        newStates = newTriples['@graph']
+                    .filter(item => m.belongsToClass(item, 'CurrentPropertyState'))
+                    .map(item => item['@id']);
+    } 
+    
+    return{newStates, newTriples};
 
 }
 
-const _opmBatchUpdate = async (tempGraphURI, queryType) => {
-    
-    if(!queryType) queryType = "select";
-
-    q = "";
-        
-    if(queryType.toLowerCase() == 'select'){
-        q+= "SELECT DISTINCT ?foiURI ?prop\n";
-    }else{        
-        if(queryType.toLowerCase() == 'insert'){
-            q+= `DELETE {
-                    ?previousState a opm:CurrentPropertyState .
-                }
-                INSERT {\n`;
-        } else if(queryType.toLowerCase() == 'construct'){
-            q+= `CONSTRUCT {\n`;
+const _opmMarkOutdated = async () => {
+    let q = `DELETE {
+            ?previousState a opm:CurrentPropertyState .
         }
-
-        q+=  `\t?previousState a opm:OutdatedPropertyState .
-                ?propURI opm:hasPropertyState ?stateURI .
-                ?stateURI a opm:PropertyState , opm:CurrentPropertyState ;
-                    schema:value ?newVal ;
-                    prov:generatedAtTime ?now ;
-                    prov:wasAttributedTo "Arch-Revit-Model" .
-            }\n`;
-    }
-
-    q+= `WHERE {
+        WHERE{
             GRAPH <${tempGraphURI}> {
                 ?foiURI ?prop ?newVal
             }
@@ -216,29 +200,47 @@ const _opmBatchUpdate = async (tempGraphURI, queryType) => {
             ?propURI opm:hasPropertyState ?previousState .
             ?previousState a opm:CurrentPropertyState ;
                 schema:value ?currentVal .
-            FILTER(xsd:string(?newVal) != xsd:string(?currentVal))\n`;
-    
-    if(queryType.toLowerCase() != 'select'){
-        q+= `BIND(IRI(CONCAT(REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "states/"), STRUUID())) AS ?stateURI)
-            BIND(NOW() AS ?now)\n`;
-    }
+            FILTER(xsd:string(?newVal) != xsd:string(?currentVal))
+        }`;
+    q = ldTools.appendPrefixesToQuery(q);
+    return fuseki.updateQuery(projectNumber, q);
+}
 
-    q+= `}`;
+const _opmBatchUpdate = async () => {
+
+    q = `CONSTRUCT {
+            ?previousState a opm:OutdatedPropertyState ;
+                prov:invalidatedAtTime ?now .
+            ?propURI opm:hasPropertyState ?stateURI .
+            ?stateURI a opm:PropertyState , opm:CurrentPropertyState ;
+                schema:value ?newVal ;
+                prov:generatedAtTime ?now ;
+                prov:wasAttributedTo "Arch-Revit-Model" .
+        }
+        WHERE{
+            GRAPH <${tempGraphURI}> {
+                ?foiURI ?prop ?newVal
+            }
+            ?foiURI ?prop ?propURI .
+            ?propURI opm:hasPropertyState ?previousState .
+            ?previousState a opm:CurrentPropertyState ;
+                schema:value ?currentVal .
+            FILTER(xsd:string(?newVal) != xsd:string(?currentVal))
+            BIND(IRI(CONCAT(REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "states/"), STRUUID())) AS ?stateURI)
+            BIND(NOW() AS ?now)
+        }`;
 
     q = ldTools.appendPrefixesToQuery(q);
 
-    if(queryType == 'select'){
-        var x = await fuseki.getQuery(projectNumber, q);
-        return x.results.bindings.length;
-    }else if(queryType == 'insert'){
-        return fuseki.updateQuery(projectNumber, q);
-    }else{
-        throw new Error("Please specify a valid query type");
-    }
+    let updatedTriples = await fuseki.getQuery(projectNumber, q, 'application/ld+json');
 
-}
+    let updatedStates = [];
+    if(updatedTriples['@graph']){
+        updatedStates = updatedTriples['@graph']
+                            .filter(item => m.belongsToClass(item, 'CurrentPropertyState'))
+                            .map(item => item['@id']);
+    } 
 
-const _clearTempGraph = async () => {
-    var q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`;
-    return fuseki.updateQuery(projectNumber,q);
+    return{updatedStates, updatedTriples};
+
 }

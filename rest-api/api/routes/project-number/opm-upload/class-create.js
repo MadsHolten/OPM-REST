@@ -1,3 +1,4 @@
+const m = require('./methods');
 const fuseki = require('../../../helpers/fuseki-connection');
 const config = require('../../../../config.json');
 const path = require('path');
@@ -117,7 +118,8 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
     var deleteTempPromise = deleteFile(tempFilePath)
 
     // Count number of new classes that will be created
-    const countNew = await _countNew();
+    let newClasses = await _getNew();
+    let countNew = newClasses.length;
 
     // Insert new class assignments if such exist
     if(countNew !== 0) await _writeNewClasses();
@@ -132,7 +134,7 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
         countDeleted = deletedClasses.length;
 
         // Mark deleted classes
-        if(countDeleted !== 0) await _deleteClasses(deletedClasses);
+        if(countDeleted !== 0) await m.markDeleted(projectNumber, deletedClasses);
     }
 
     // Count number of previously deleted classes that are now back and remove the opm:Deleted class
@@ -145,7 +147,7 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
         countRestored = restoredClasses.length;
 
         // Remove opm:Deleted class
-        await _restoreClasses(restoredClasses);
+        if(countRestored !== 0) await m.unMarkDeleted(projectNumber, restoredClasses);
     }
 
     // Update result message
@@ -153,20 +155,27 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
         msg = `All classes already exist in the main graph and nothing was deleted or restored.`;
     }else{
         msg = `Added ${countNew} new classes`;
-        if(countDeleted) msg += `, deleted ${countDeleted} classes that were missing in the batch`;
-        if(countRestored) msg += `, restored ${countRestored} classes that were previously missing in the batch but are now back`;
+        if(countDeleted) msg += `\nDeleted ${countDeleted} classes that were missing in the batch`;
+        if(countRestored) msg += `\nRestored ${countRestored} classes that were previously missing in the batch but are now back`;
+    }
+
+    if(dsURI){
+        msg = "***OPM-REST SYNC LOG***\nSuccessfully performed class-create task.\n\n"+msg;
+        let affectedURIs = deletedClasses.concat(restoredClasses);
+        affectedURIs = affectedURIs.concat(newClasses);
+        await m.writeLog(projectNumber, msg, dsURI, affectedURIs);
     }
 
     // Make sure temp file was deleted
     await deleteTempPromise;
 
-    await _clearTempGraph();
+    await m.clearTempGraph(projectNumber, tempGraphURI);
 
     return msg;
 
 }
 
-const _countNew = async () => {
+const _getNew = async () => {
     // Query to count the number of new classes that will be created
     var q = `
     PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -183,9 +192,13 @@ const _countNew = async () => {
     }`;
 
     var x = await fuseki.getQuery(projectNumber, q);
-    const count = x.results.bindings.length;
 
-    return count;
+    if(x.results.bindings.length){
+        return x.results.bindings.map(item => item.s.value);
+    }else{
+        return [];
+    }
+
 }
 
 const _getDeleted = async () => {
@@ -271,27 +284,6 @@ const _writeNewClasses = async () => {
     return fuseki.updateQuery(projectNumber,q);
 }
 
-const _deleteClasses = async (URIs) => {
-
-    // Rewrite list of URIs to SPARQL values format
-    URIs = URIs.map(URI => `<${URI}>`).join(' ');
-
-    var q = `
-        PREFIX opm: <https://w3id.org/opm#>
-        PREFIX prov: <http://www.w3.org/ns/prov#>
-        INSERT {
-            ?s a opm:Deleted ;
-                prov:invalidatedAtTime ?now
-        }
-        WHERE {
-            VALUES ?s { ${URIs} }
-            BIND(NOW() as ?now)
-        }`;
-
-    return fuseki.updateQuery(projectNumber,q);
-
-}
-
 const _restoreClasses = async (URIs) => {
 
     // Rewrite list of URIs to SPARQL values format
@@ -312,9 +304,4 @@ const _restoreClasses = async (URIs) => {
 
     return fuseki.updateQuery(projectNumber,q);
 
-}
-
-const _clearTempGraph = async () => {
-    var q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`;
-    return fuseki.updateQuery(projectNumber,q);
 }

@@ -1,3 +1,5 @@
+
+const m = require('./methods');
 const fuseki = require('../../../helpers/fuseki-connection');
 const config = require('../../../../config.json');
 const path = require('path');
@@ -118,7 +120,8 @@ const _opmMain = async (tempFilePath) => {
     var deleteTempPromise = deleteFile(tempFilePath)
 
     // Count number of new class assignments that will be created
-    var countNew = await _countNew();
+    let newInstances = await _getNew();
+    let countNew = newInstances.length;
 
     // Insert new class assignments if such exist
     if(countNew !== 0) await _writeNewClassAssignments();
@@ -133,7 +136,7 @@ const _opmMain = async (tempFilePath) => {
         countDeleted = deletedInstances.length;
 
         // Mark deleted classes
-        if(countDeleted !== 0) await _deleteInstances(deletedInstances);
+        if(countDeleted !== 0) await m.markDeleted(projectNumber, deletedInstances);
     }
 
     // Count number of previously deleted instances that are now back and remove the opm:Deleted class
@@ -146,7 +149,7 @@ const _opmMain = async (tempFilePath) => {
         countRestored = restoredInstances.length;
 
         // Remove opm:Deleted class
-        if(countRestored !== 0) await _restoreInstances(restoredInstances);
+        if(countRestored !== 0) await m.unMarkDeleted(projectNumber, restoredInstances);
     }
 
     // Update result message
@@ -154,11 +157,18 @@ const _opmMain = async (tempFilePath) => {
         msg = `All class assignments already exist in the main graph and nothing was deleted or restored.`;
     }else{
         msg = `Assigned ${countNew} instance(s) to a class`;
-        if(countDeleted) msg += `, deleted ${countDeleted} instance(s) that were missing in the batch`;
-        if(countRestored) msg += `, restored ${countRestored} instance(s) that were previously missing in the batch but are now back`;
+        if(countDeleted) msg += `\nDeleted ${countDeleted} instance(s) that were missing in the batch`;
+        if(countRestored) msg += `\nRestored ${countRestored} instance(s) that were previously missing in the batch but are now back`;
     }
 
-    await _clearTempGraph();
+    if(dsURI){
+        msg = "***OPM-REST SYNC LOG***\nSuccessfully performed class-assignment task.\n\n"+msg;
+        let affectedURIs = deletedInstances.concat(restoredInstances);
+        affectedURIs = affectedURIs.concat(newInstances);
+        await m.writeLog(projectNumber, msg, dsURI, affectedURIs);
+    }
+
+    await m.clearTempGraph(projectNumber, tempGraphURI);
 
     // Make sure temp file was deleted
     await deleteTempPromise;
@@ -167,8 +177,8 @@ const _opmMain = async (tempFilePath) => {
 
 }
 
-const _countNew = async () => {
-    // Query to count the number of new classes that will be created
+const _getNew = async () => {
+    // Query to count the number of new class instances that will be created
     var q = `
         SELECT DISTINCT ?s
         WHERE {
@@ -181,11 +191,13 @@ const _countNew = async () => {
                 ?s a ?class
             }
         }`;
+    const x = await fuseki.getQuery(projectNumber, q);
 
-    var x = await fuseki.getQuery(projectNumber, q);
-    const count = x.results.bindings.length;
-
-    return count;
+    if(x.results.bindings.length){
+        return x.results.bindings.map(item => item.s.value);
+    }else{
+        return [];
+    }
 }
 
 const _getDeleted = async () => {
@@ -239,49 +251,6 @@ const _getRestored = async () => {
     return URIs;
 }
 
-const _deleteInstances = async (URIs) => {
-
-    // Rewrite list of URIs to SPARQL values format
-    URIs = URIs.map(URI => `<${URI}>`).join(' ');
-
-    var q = `
-        PREFIX opm: <https://w3id.org/opm#>
-        PREFIX prov: <http://www.w3.org/ns/prov#>
-        INSERT {
-            ?s a opm:Deleted ;
-                prov:invalidatedAtTime ?now
-        }
-        WHERE {
-            VALUES ?s { ${URIs} }
-            BIND(NOW() as ?now)
-        }`;
-
-    return fuseki.updateQuery(projectNumber,q);
-
-}
-
-const _restoreInstances = async (URIs) => {
-
-    // Rewrite list of URIs to SPARQL values format
-    URIs = URIs.map(URI => `<${URI}>`).join(' ');
-
-    var q = `
-        PREFIX opm: <https://w3id.org/opm#>
-        PREFIX prov: <http://www.w3.org/ns/prov#>
-        DELETE{
-            ?s a opm:Deleted ;
-                prov:invalidatedAtTime ?t
-        }
-        WHERE {
-            VALUES ?s { ${URIs} }
-            ?s a opm:Deleted ;
-                prov:invalidatedAtTime ?t .
-        }`;
-
-    return fuseki.updateQuery(projectNumber,q);
-
-}
-
 // Put all new class assignments and their static properties (revit ID, GUID etc.) 
 // in the main graph with a new time stamp assigned
 const _writeNewClassAssignments = async () => {
@@ -310,10 +279,5 @@ const _writeNewClassAssignments = async () => {
             BIND(NOW() as ?now)
         }`;
 
-    return fuseki.updateQuery(projectNumber,q);
-}
-
-const _clearTempGraph = async () => {
-    var q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`;
     return fuseki.updateQuery(projectNumber,q);
 }

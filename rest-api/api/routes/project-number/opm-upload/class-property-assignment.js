@@ -1,3 +1,4 @@
+const m = require('./methods');
 const fuseki = require('../../../helpers/fuseki-connection');
 const ldTools = require('../../../helpers/ld-tools');
 const config = require('../../../../config.json');
@@ -20,6 +21,7 @@ var upload = multer({
 // GLOBAL VARIABLES
 var projectNumber;
 var tempGraphURI;
+var dsURI;
 
 module.exports = (app) => {
 
@@ -30,6 +32,7 @@ module.exports = (app) => {
 
         // Get data
         projectNumber = req.params.projNo;
+        dsURI = req.query.dsURI;
 
         // Make URI for temp graph
         tempGraphURI = urljoin(process.env.DATA_NAMESPACE, projectNumber, 'class-prop-ass-temp');
@@ -65,6 +68,7 @@ module.exports = (app) => {
                 process.env.DEBUG && console.log('  - '+msg+'\n');
                 res.send(msg);
             }catch(e){
+                console.log(e);
                 return next({msg: e.message, status: e.status});
             }
         }
@@ -90,6 +94,7 @@ module.exports = (app) => {
                     process.env.DEBUG && console.log('  - '+msg+'\n');
                     res.send(msg);
                 }catch(e){
+                    console.log(e);
                     return next({msg: e.message, status: e.status});
                 }
 
@@ -103,6 +108,8 @@ module.exports = (app) => {
 
 const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
+    var msg;
+
     // Upload file to temp graph in triplestore
     await fuseki.loadFile(projectNumber, tempFilePath, tempGraphURI);
 
@@ -110,19 +117,33 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
     var deleteTempPromise = deleteFile(tempFilePath);
 
     // Count the number of new properties that will be created
-    const countNew = await _opmBatchClassPropertyCreate(tempGraphURI, 'select');
+    const {newStates, newTriples} = await _opmBatchClassPropertyCreate();
+    countNew = newStates.length;
 
     // Count the number of properties that will be updated
-    const countUpdated = await _opmBatchClassPropertyUpdate(tempGraphURI, 'select');
+    const {updatedStates, updatedTriples} = await _opmBatchClassPropertyUpdate();
+    const countUpdated = updatedStates.length;
 
     // Insert new properties
-    if(countNew != 0) await _opmBatchClassPropertyCreate(tempGraphURI, 'insert');
+    if(countNew != 0) await fuseki.loadTriples(projectNumber, newTriples, 'application/ld+json');
 
-    // Insert new property states
-    if(countUpdated != 0) await _opmBatchClassPropertyUpdate(tempGraphURI, 'insert');
+    // Insert updated property states
+    if(countUpdated != 0){
+        let promises = [
+            fuseki.loadTriples(projectNumber, updatedTriples, 'application/ld+json'),
+            _opmMarkOutdated()
+        ];
+        await Promise.all(promises);
+    }
 
     // Clear temp graph
-    await _clearTempGraph();
+    await m.clearTempGraph(projectNumber, tempGraphURI);
+
+    if(dsURI){
+        msg = "***OPM-REST SYNC LOG***\nSuccessfully performed class-property-assignment task.\n\n"+msg;
+        let affectedURIs = newStates.concat(updatedStates);
+        await m.writeLog(projectNumber, msg, dsURI, affectedURIs);
+    }
 
     // Make sure temp file was deleted
     await deleteTempPromise;
@@ -131,18 +152,10 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
 }
 
-const _opmBatchClassPropertyCreate = async (tempGraphURI, queryType) => {
+const _opmBatchClassPropertyCreate = async () => {
 
-    if(!queryType) queryType = "select"
-
-    let q = ""
-        
-    if(queryType.toLowerCase() == 'select'){
-        q+= "SELECT DISTINCT ?classURI ?prop\n"
-    }else{
-        q+= `${queryType.toUpperCase()} {`
-
-        q+= `?classURI rdfs:subClassOf ?restrictionURI .
+    q= `CONSTRUCT{
+            ?classURI rdfs:subClassOf ?restrictionURI .
             ?restrictionURI a owl:Restriction ;
                 owl:onProperty ?prop ;
                 owl:hasValue ?propURI .
@@ -151,10 +164,8 @@ const _opmBatchClassPropertyCreate = async (tempGraphURI, queryType) => {
                 schema:value ?val ;
                 prov:generatedAtTime ?now ;
                 prov:wasAttributedTo "Arch-Revit-Model" .
-            }\n`
-    }
-
-    q+= `WHERE {
+        }
+        WHERE {
             GRAPH <${tempGraphURI}> {
                 ?classURI ?prop ?val
             }
@@ -164,92 +175,89 @@ const _opmBatchClassPropertyCreate = async (tempGraphURI, queryType) => {
                     owl:onProperty ?prop ;
                     owl:hasValue ?x
                 ] .
-            }`;
-
-    if(queryType.toLowerCase() != 'select'){
-        q+= `BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "properties/"), STRUUID())) AS ?propURI)
+            }
+            BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "properties/"), STRUUID())) AS ?propURI)
             BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "states/"), STRUUID())) AS ?stateURI)
             BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "restrictions/"), STRUUID())) AS ?restrictionURI)
-            BIND(NOW() AS ?now)\n`
-    }
-
-    q+= `}`;
+            BIND(NOW() AS ?now)
+        }`
 
     q = ldTools.appendPrefixesToQuery(q);
 
-    if(queryType == 'select'){
-        var x = await fuseki.getQuery(projectNumber, q);
-        return x.results.bindings.length;
-    }else if(queryType == 'insert'){
-        return fuseki.updateQuery(projectNumber, q);
-    }else{
-        throw new Error("Please specify a valid query type");
-    }
+    let newTriples = await fuseki.getQuery(projectNumber, q, 'application/ld+json');
 
+    let newStates = [];
+    if(newTriples['@graph']){
+        newStates = newTriples['@graph']
+                    .filter(item => m.belongsToClass(item, 'CurrentPropertyState'))
+                    .map(item => item['@id']);
+    } 
+    
+    return{newStates, newTriples};
+    
 }
 
-const _opmBatchClassPropertyUpdate = async (tempGraphURI, queryType) => {
-    
-    if(!queryType) queryType = "select"
-
-    let q = ""
-        
-    if(queryType.toLowerCase() == 'select'){
-        q+= "SELECT DISTINCT ?classURI ?prop\n"
-    }else{        
-        if(queryType.toLowerCase() == 'insert'){
-            q+= `DELETE {
-                    ?previousState a opm:CurrentPropertyState .
-                }
-                INSERT {\n`
-        } else if(queryType.toLowerCase() == 'construct'){
-            q+= `CONSTRUCT {\n`
+const _opmMarkOutdated = async () => {
+    let q = `DELETE {
+        ?previousState a opm:CurrentPropertyState .
+    }
+    WHERE{
+        GRAPH <${tempGraphURI}> {
+            ?classURI ?prop ?newVal
         }
+        ?classURI rdfs:subClassOf [
+            a owl:Restriction ;
+            owl:onProperty ?prop ;
+            owl:hasValue ?propURI
+        ] .
+        ?propURI opm:hasPropertyState ?previousState .
+        ?previousState a opm:CurrentPropertyState ;
+            schema:value ?currentVal .
+        FILTER(xsd:string(?newVal) != xsd:string(?currentVal))
+    }`;
+q = ldTools.appendPrefixesToQuery(q);
+return fuseki.updateQuery(projectNumber, q);
+}
 
-        q+= `?previousState a opm:OutdatedPropertyState .
+const _opmBatchClassPropertyUpdate = async () => {
+    
+    let q = `CONSTRUCT {
+            ?previousState a opm:OutdatedPropertyState ;
+                prov:invalidatedAtTime ?now .
             ?propURI opm:hasPropertyState ?stateURI .
                 ?stateURI a opm:PropertyState , opm:CurrentPropertyState ;
                     schema:value ?newVal ;
                     prov:generatedAtTime ?now ;
                     prov:wasAttributedTo "Arch-Revit-Model" .
-            }\n`;
-    }
-
-    q+= `WHERE {
-            GRAPH <${tempGraphURI}> {
-                ?classURI ?prop ?newVal
             }
-            ?classURI rdfs:subClassOf [
-                a owl:Restriction ;
-                owl:onProperty ?prop ;
-                owl:hasValue ?propURI
-            ] .
-            ?propURI opm:hasPropertyState ?previousState .
-            ?previousState a opm:CurrentPropertyState ;
-                schema:value ?currentVal .
-            FILTER(xsd:string(?newVal) != xsd:string(?currentVal))\n`
-    
-    if(queryType.toLowerCase() != 'select'){
-        q+= `BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "xx/states/"), STRUUID())) AS ?stateURI)
-            BIND(NOW() AS ?now)\n`
-    }
-
-    q+= `}`
+            WHERE {
+                GRAPH <${tempGraphURI}> {
+                    ?classURI ?prop ?newVal
+                }
+                ?classURI rdfs:subClassOf [
+                    a owl:Restriction ;
+                    owl:onProperty ?prop ;
+                    owl:hasValue ?propURI
+                ] .
+                ?propURI opm:hasPropertyState ?previousState .
+                ?previousState a opm:CurrentPropertyState ;
+                    schema:value ?currentVal .
+                FILTER(xsd:string(?newVal) != xsd:string(?currentVal))
+                BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "xx/states/"), STRUUID())) AS ?stateURI)
+                BIND(NOW() AS ?now)
+            }`;
 
     q = ldTools.appendPrefixesToQuery(q);
 
-    if(queryType == 'select'){
-        var x = await fuseki.getQuery(projectNumber, q);
-        return x.results.bindings.length;
-    }else if(queryType == 'insert'){
-        return fuseki.updateQuery(projectNumber, q);
-    }else{
-        throw new Error("Please specify a valid query type");
-    }
+    let updatedTriples = await fuseki.getQuery(projectNumber, q, 'application/ld+json');
 
-}
+    let updatedStates = [];
+    if(updatedTriples['@graph']){
+        updatedStates = updatedTriples['@graph']
+                            .filter(item => m.belongsToClass(item, 'CurrentPropertyState'))
+                            .map(item => item['@id']);
+    } 
 
-const _clearTempGraph = async () => {
-    var q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`;
-    return fuseki.updateQuery(projectNumber,q);
+    return{updatedStates, updatedTriples};
+
 }
