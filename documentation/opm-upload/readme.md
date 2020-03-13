@@ -2,10 +2,10 @@
 
 
 
-### 1. /:projectNumber/opm-upload/class-assignment?sourceID=:myModel
-A POST request to this route with a turtle file as payload is accepted. 
+### 1. /:projectNumber/opm-upload/class-assignment
+A POST request to this route with a turtle file as payload is accepted.
 
-An optional *sourceID* query parameter can be provided. This will default to "opm-batch" if nothing is given, but it is recommended to use something which is unique for the source and which will persist with the next batch uploads. For example the model name. The source ID is used to compare existing instances with the new instances comming from the same source. If an instance exists in the store but is not part of the new batch it will be marked as deleted (see below).
+An optional *dsURI* query parameter can be provided. This Data Source URI is a URI which defines the data source from which the batch of class instances came (for example a Revit model). This is used in cases where multiple data sources are synced on OPM-REST. This way, it is possible to tell which data source the data came from, and further it is possible to see if something is missing compared to what once was coming from the same data source. If an instance exists in the store but is not part of the new incoming batch, it will be marked as deleted (see below).
 
 The expected triple format is:
 
@@ -67,6 +67,12 @@ A POST request to this route with a turtle file as payload is accepted. The expe
 ```
 
 If the class doesn't already exist it is created.
+
+An optional *dsURI* query parameter can be provided (see section 1) and if this is present, it will also be possible to mark deleted classes:
+```turtle
+<class> a opm:Deleted ;
+    prov:invalidatedAtTime "currentTime"^^xsd:dateTime .
+```
 
 ![class-create image](./class-create.png "class-create image")
 
