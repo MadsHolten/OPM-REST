@@ -5,7 +5,7 @@
 ### 1. /:projectNumber/opm-upload/class-assignment
 A POST request to this route with a turtle file as payload is accepted.
 
-An optional *dsURI* query parameter can be provided. This Data Source URI is a URI which defines the data source from which the batch of class instances came (for example a Revit model). This is used in cases where multiple data sources are synced on OPM-REST. This way, it is possible to tell which data source the data came from, and further it is possible to see if something is missing compared to what once was coming from the same data source. If an instance exists in the store but is not part of the new incoming batch, it will be marked as deleted (see below).
+An optional *dsURI* query parameter can be provided (/:projectNumber/opm-upload/class-assignment?dsURI=:dsURI). This Data Source URI is a URI which defines the data source from which the batch of class instances came (for example a Revit model). This is used in cases where multiple data sources are synced on OPM-REST. This way, it is possible to tell which data source the data came from, and further it is possible to see if something is missing compared to what once was coming from the same data source. If an instance exists in the store but is not part of the new incoming batch, it will be marked as deleted (see below).
 
 The expected triple format is:
 
