@@ -14,7 +14,11 @@ services:
       - FUSEKI_HOST=http://fuseki:3030
       - FUSEKI_USER=admin
       - FUSEKI_PASS=admin
-    command: npm run dev
+    command: node_modules/.bin/nodemon -L /usr/src/app/index.js
+    volumes:
+      - ./rest-api/api:/usr/src/app/api
+      - ./rest-api/index.js:/usr/src/app/index.js
+      - ./rest-api/config.json:/usr/src/app/config.json
     links:
       - fuseki
 

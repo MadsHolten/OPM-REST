@@ -17,6 +17,8 @@ var upload = multer({
 }).single('file')
 
 // GLOBAL VARIABLES
+var projectNumber;
+var tempGraphURI;
 var dsURI;
 
 module.exports = (app) => {
@@ -27,7 +29,7 @@ module.exports = (app) => {
         process.env.DEBUG && console.log(`Route: POST /${req.params.projNo}/opm-upload/class-create`);
 
         // Get data
-        const projNo = req.params.projNo;
+        projectNumber = req.params.projNo;
 
         // A data source URI (dsURI) is optional, but required for deletion (and general insights)
         // When recieving new class creation, a check to the existing classes from the same data source will be made
@@ -36,7 +38,7 @@ module.exports = (app) => {
         dsURI = req.query.dsURI;
 
         // Make URI for temp graph
-        const tempGraphURI = urljoin(process.env.DATA_NAMESPACE, projNo, 'class-create-temp');
+        tempGraphURI = urljoin(process.env.DATA_NAMESPACE, projectNumber, 'class-create-temp');
 
         // Get content type header
         const contentType = req.headers['content-type'];
@@ -65,7 +67,7 @@ module.exports = (app) => {
             
             // Do all the OPM stuff
             try{
-                const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
+                const msg = await _opmMain(projectNumber, tempFilePath, tempGraphURI);
                 process.env.DEBUG && console.log('  - '+msg+'\n');
                 res.send(msg);
             }catch(e){
@@ -90,7 +92,7 @@ module.exports = (app) => {
 
                 // Do all the OPM stuff
                 try{
-                    const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
+                    const msg = await _opmMain(projectNumber, tempFilePath, tempGraphURI);
                     process.env.DEBUG && console.log('  - '+msg+'\n');
                     res.send(msg);
                 }catch(e){
@@ -104,43 +106,61 @@ module.exports = (app) => {
 
 }
 
-const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
+const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
     var msg;
 
     // Upload file to temp graph in triplestore
-    await fuseki.loadFile(projNo, tempFilePath, tempGraphURI)
+    await fuseki.loadFile(projectNumber, tempFilePath, tempGraphURI)
 
     // Delete temp file (returns promise)
     var deleteTempPromise = deleteFile(tempFilePath)
 
     // Count number of new classes that will be created
-    var countNew = 0;
-    try{
-        var countNew = await _countNew();
-    }catch(e){
-        return next({msg: e.message, status: e.status});
-    }
+    const countNew = await _countNew();
 
     // Insert new class assignments if such exist
-    if(countNew !== 0){
-        try{
-            await _writeNewClasses();
-            msg = `Successfully created ${countNew} classes`;
-        }catch(e){
-            console.log(e);
-            return next({msg: e.message, status: e.status});
-        }
+    if(countNew !== 0) await _writeNewClasses();
+
+    // Count number of deleted classes that should be marked as opm:Deleted and append the opm:Deleted class
+    // This is only possible if a dsURI is provided
+    let deletedClasses = [];
+    let countDeleted = 0;
+    if(dsURI){
+        deletedClasses = await _getDeleted();
+        
+        countDeleted = deletedClasses.length;
+
+        // Mark deleted classes
+        if(countDeleted !== 0) await _deleteClasses(deletedClasses);
+    }
+
+    // Count number of previously deleted classes that are now back and remove the opm:Deleted class
+    // This is only possible if a dsURI is provided
+    let restoredClasses = [];
+    let countRestored = 0;
+    if(dsURI){
+        restoredClasses = await _getRestored();
+        
+        countRestored = restoredClasses.length;
+
+        // Remove opm:Deleted class
+        await _restoreClasses(restoredClasses);
+    }
+
+    // Update result message
+    if(countNew == 0 && countDeleted == 0 && countRestored == 0){
+        msg = `All classes already exist in the main graph and nothing was deleted or restored.`;
     }else{
-        msg = `All classes already exist in the main graph.`;
+        msg = `Added ${countNew} new classes`;
+        if(countDeleted) msg += `, deleted ${countDeleted} classes that were missing in the batch`;
+        if(countRestored) msg += `, restored ${countRestored} classes that were previously missing in the batch but are now back`;
     }
 
     // Make sure temp file was deleted
     await deleteTempPromise;
 
-    // Clear temp graph
-    var q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`;
-    await fuseki.updateQuery(projNo,q);
+    await _clearTempGraph();
 
     return msg;
 
@@ -168,6 +188,57 @@ const _countNew = async () => {
     return count;
 }
 
+const _getDeleted = async () => {
+    // Query to count the number of classes that will be marked as deleted
+    var q = `
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        PREFIX opm: <https://w3id.org/opm#>
+        SELECT DISTINCT ?s
+        WHERE {
+            # GET EXISTING CLASS ASSIGNMENTS OF THINGS WITH MATCHING DATA SOURCES
+            ?s a owl:Class ;
+                opm:dataSource <${dsURI}> .
+            
+            # Must not be classified as deleted already
+            MINUS{ ?s a opm:Deleted }
+
+            # MUST NOT EXIST IN TEMP GRAPH
+            FILTER NOT EXISTS {
+                GRAPH <${tempGraphURI}> {
+                    ?s a owl:Class
+                }
+            }
+        }`;
+
+    var x = await fuseki.getQuery(projectNumber, q);
+    const URIs = x.results.bindings.map(item => item.s.value);
+
+    return URIs;
+}
+
+const _getRestored = async () => {
+    // Query to count the number of classes that will be marked as deleted
+
+    var q = `
+        PREFIX opm: <https://w3id.org/opm#>
+        SELECT DISTINCT ?s
+        WHERE {
+            # MUST EXIST IN TEMP GRAPH
+            GRAPH <${tempGraphURI}> {
+                ?s a owl:Class
+            }
+
+            # MUST BE DELETED AND BELONG TO SAME DATA SOURCE
+            ?s a opm:Deleted ;
+                opm:dataSource <${dsURI}> .
+        }`;
+
+    var x = await fuseki.getQuery(projectNumber, q);
+    const URIs = x.results.bindings.map(item => item.s.value);
+
+    return URIs;
+}
+
 // Put all new classes and their static properties (revit ID, GUID etc.) 
 // in the main graph with a new time stamp assigned
 const _writeNewClasses = async () => {
@@ -177,6 +248,7 @@ const _writeNewClasses = async () => {
     q = `
         PREFIX owl: <http://www.w3.org/2002/07/owl#>
         PREFIX prov: <http://www.w3.org/ns/prov#>
+        PREFIX opm: <https://w3id.org/opm#>
         INSERT {
             ?s a owl:Class ;
                 ?key ?val ;
@@ -196,5 +268,53 @@ const _writeNewClasses = async () => {
             BIND(NOW() as ?now)
         }`;
 
+    return fuseki.updateQuery(projectNumber,q);
+}
+
+const _deleteClasses = async (URIs) => {
+
+    // Rewrite list of URIs to SPARQL values format
+    URIs = URIs.map(URI => `<${URI}>`).join(' ');
+
+    var q = `
+        PREFIX opm: <https://w3id.org/opm#>
+        PREFIX prov: <http://www.w3.org/ns/prov#>
+        INSERT {
+            ?s a opm:Deleted ;
+                prov:invalidatedAtTime ?now
+        }
+        WHERE {
+            VALUES ?s { ${URIs} }
+            BIND(NOW() as ?now)
+        }`;
+
+    return fuseki.updateQuery(projectNumber,q);
+
+}
+
+const _restoreClasses = async (URIs) => {
+
+    // Rewrite list of URIs to SPARQL values format
+    URIs = URIs.map(URI => `<${URI}>`).join(' ');
+
+    var q = `
+        PREFIX opm: <https://w3id.org/opm#>
+        PREFIX prov: <http://www.w3.org/ns/prov#>
+        DELETE{
+            ?s a opm:Deleted ;
+                prov:invalidatedAtTime ?t
+        }
+        WHERE {
+            VALUES ?s { ${URIs} }
+            ?s a opm:Deleted ;
+                prov:invalidatedAtTime ?t .
+        }`;
+
+    return fuseki.updateQuery(projectNumber,q);
+
+}
+
+const _clearTempGraph = async () => {
+    var q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`;
     return fuseki.updateQuery(projectNumber,q);
 }

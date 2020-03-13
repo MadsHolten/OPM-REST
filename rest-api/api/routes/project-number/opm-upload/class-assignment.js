@@ -118,52 +118,44 @@ const _opmMain = async (tempFilePath) => {
     var deleteTempPromise = deleteFile(tempFilePath)
 
     // Count number of new class assignments that will be created
-    var countNew = 0;
-    try{
-        countNew = await _countNew();
-    }catch(e){
-        console.log(e);
-        return next({msg: e.message, status: e.status});
-    }
+    var countNew = await _countNew();
 
     // Insert new class assignments if such exist
-    if(countNew !== 0){
-        try{
-            await _writeNewClasses();
-        }catch(e){
-            console.log(e);
-            return next({msg: e.message, status: e.status});
-        }
-    }
+    if(countNew !== 0) await _writeNewClassAssignments();
 
-    // Count number of deleted triples that should be marked as opm:Deleted
+    // Count number of deleted instances that should be marked as opm:Deleted and append the opm:Deleted class
     // This is only possible if a dsURI is provided
-    var deletedInstances = [];
+    let deletedInstances = [];
+    let countDeleted = 0;
     if(dsURI){
-        try{
-            deletedInstances = await _getDeleted();
-        }catch(e){
-            console.log(e);
-            return next({msg: e.message, status: e.status});
-        }
-        const countDeleted = deletedInstances.length;
+        deletedInstances = await _getDeleted();
+        
+        countDeleted = deletedInstances.length;
 
         // Mark deleted classes
-        if(countDeleted !== 0){
-            try{
-                await _deleteClasses(deletedInstances);
-            }catch(e){
-                console.log(e);
-                return next({msg: e.message, status: e.status});
-            }
-        }
+        if(countDeleted !== 0) await _deleteInstances(deletedInstances);
     }
 
-    // Update result message if count = 0
-    if(countNew == 0 && countDeleted == 0){
-        msg = `All class assignments already exist in the main graph and nothing was deleted.`;
+    // Count number of previously deleted instances that are now back and remove the opm:Deleted class
+    // This is only possible if a dsURI is provided
+    let restoredInstances = [];
+    let countRestored = 0;
+    if(dsURI){
+        restoredInstances = await _getRestored();
+        
+        countRestored = restoredInstances.length;
+
+        // Remove opm:Deleted class
+        if(countRestored !== 0) await _restoreInstances(restoredInstances);
+    }
+
+    // Update result message
+    if(countNew == 0 && countDeleted == 0 && countRestored == 0){
+        msg = `All class assignments already exist in the main graph and nothing was deleted or restored.`;
     }else{
-        msg = `Assigned ${countNew} instances to a class and deleted ${countDeleted} instances that were missing in the batch.`;
+        msg = `Assigned ${countNew} instance(s) to a class`;
+        if(countDeleted) msg += `, deleted ${countDeleted} instance(s) that were missing in the batch`;
+        if(countRestored) msg += `, restored ${countRestored} instance(s) that were previously missing in the batch but are now back`;
     }
 
     await _clearTempGraph();
@@ -224,7 +216,30 @@ const _getDeleted = async () => {
     return URIs;
 }
 
-const _deleteClasses = async (URIs) => {
+const _getRestored = async () => {
+    // Query to count the number of classes that will be marked as deleted
+
+    var q = `
+        PREFIX opm: <https://w3id.org/opm#>
+        SELECT DISTINCT ?s
+        WHERE {
+            # MUST EXIST IN TEMP GRAPH
+            GRAPH <${tempGraphURI}> {
+                ?s a ?class
+            }
+
+            # MUST BE DELETED AND BELONG TO SAME DATA SOURCE
+            ?s a opm:Deleted ;
+                opm:dataSource <${dsURI}> .
+        }`;
+
+    var x = await fuseki.getQuery(projectNumber, q);
+    const URIs = x.results.bindings.map(item => item.s.value);
+
+    return URIs;
+}
+
+const _deleteInstances = async (URIs) => {
 
     // Rewrite list of URIs to SPARQL values format
     URIs = URIs.map(URI => `<${URI}>`).join(' ');
@@ -245,9 +260,31 @@ const _deleteClasses = async (URIs) => {
 
 }
 
+const _restoreInstances = async (URIs) => {
+
+    // Rewrite list of URIs to SPARQL values format
+    URIs = URIs.map(URI => `<${URI}>`).join(' ');
+
+    var q = `
+        PREFIX opm: <https://w3id.org/opm#>
+        PREFIX prov: <http://www.w3.org/ns/prov#>
+        DELETE{
+            ?s a opm:Deleted ;
+                prov:invalidatedAtTime ?t
+        }
+        WHERE {
+            VALUES ?s { ${URIs} }
+            ?s a opm:Deleted ;
+                prov:invalidatedAtTime ?t .
+        }`;
+
+    return fuseki.updateQuery(projectNumber,q);
+
+}
+
 // Put all new class assignments and their static properties (revit ID, GUID etc.) 
 // in the main graph with a new time stamp assigned
-const _writeNewClasses = async () => {
+const _writeNewClassAssignments = async () => {
 
     let ds = dsURI ? `opm:dataSource <${dsURI}> ;` : "";
 
@@ -277,9 +314,6 @@ const _writeNewClasses = async () => {
 }
 
 const _clearTempGraph = async () => {
-
-    // Clear temp graph
     var q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`;
     return fuseki.updateQuery(projectNumber,q);
-
 }

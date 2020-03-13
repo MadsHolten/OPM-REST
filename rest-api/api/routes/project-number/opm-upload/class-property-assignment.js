@@ -15,7 +15,11 @@ const writeFile = util.promisify(fs.writeFile);
 
 var upload = multer({
     dest: tempUploadFolder
-}).single('file')
+}).single('file');
+
+// GLOBAL VARIABLES
+var projectNumber;
+var tempGraphURI;
 
 module.exports = (app) => {
 
@@ -25,10 +29,10 @@ module.exports = (app) => {
         process.env.DEBUG && console.log(`Route: POST /${req.params.projNo}/opm-upload/class-property-assignment`);
 
         // Get data
-        const projNo = req.params.projNo;
+        projectNumber = req.params.projNo;
 
         // Make URI for temp graph
-        const tempGraphURI = urljoin(process.env.DATA_NAMESPACE, projNo, 'class-prop-ass-temp');
+        tempGraphURI = urljoin(process.env.DATA_NAMESPACE, projectNumber, 'class-prop-ass-temp');
 
         // Get content type header
         const contentType = req.headers['content-type'];
@@ -57,7 +61,7 @@ module.exports = (app) => {
             
             // Do all the OPM stuff
             try{
-                const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
+                const msg = await _opmMain(projectNumber, tempFilePath, tempGraphURI);
                 process.env.DEBUG && console.log('  - '+msg+'\n');
                 res.send(msg);
             }catch(e){
@@ -82,7 +86,7 @@ module.exports = (app) => {
 
                 // Do all the OPM stuff
                 try{
-                    const msg = await _opmMain(projNo, tempFilePath, tempGraphURI);
+                    const msg = await _opmMain(projectNumber, tempFilePath, tempGraphURI);
                     process.env.DEBUG && console.log('  - '+msg+'\n');
                     res.send(msg);
                 }catch(e){
@@ -97,58 +101,28 @@ module.exports = (app) => {
 
 }
 
-const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
-
-    var countNew = 0;
-    var countUpdated = 0;
+const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
     // Upload file to temp graph in triplestore
-    await fuseki.loadFile(projNo, tempFilePath, tempGraphURI);
+    await fuseki.loadFile(projectNumber, tempFilePath, tempGraphURI);
 
     // Delete temp file (returns promise)
     var deleteTempPromise = deleteFile(tempFilePath);
 
-    // Query to count the number of new properties that will be created
-    var q = _opmBatchClassPropertyCreate(tempGraphURI, 'select');
-    try{
-        var x = await fuseki.getQuery(projNo, q);
-        countNew = x.results.bindings.length
-    }catch(e){
-        return next({msg: e.message, status: e.status})
-    }
+    // Count the number of new properties that will be created
+    const countNew = await _opmBatchClassPropertyCreate(tempGraphURI, 'select');
 
-    // Query to count the number of properties that will be updated
-    var q = _opmBatchClassPropertyUpdate(tempGraphURI, 'select')
-    try{
-        var x = await fuseki.getQuery(projNo, q)
-        countUpdated = x.results.bindings.length
-    }catch(e){
-        return next({msg: e.message, status: e.status})
-    }
+    // Count the number of properties that will be updated
+    const countUpdated = await _opmBatchClassPropertyUpdate(tempGraphURI, 'select');
 
-    if(countNew != 0){
-        // Insert new properties
-        q = _opmBatchClassPropertyCreate(tempGraphURI, 'insert')
-        try{
-            await fuseki.updateQuery(projNo,q)
-        }catch(e){
-            return next({msg: e.message, status: e.status})
-        }
-    }
+    // Insert new properties
+    if(countNew != 0) await _opmBatchClassPropertyCreate(tempGraphURI, 'insert');
 
-    if(countUpdated != 0){
-        // Insert new property states
-        q = _opmBatchClassPropertyUpdate(tempGraphURI, 'insert')
-        try{
-            await fuseki.updateQuery(projNo,q)
-        }catch(e){
-            return next({msg: e.message, status: e.status})
-        }
-    }
+    // Insert new property states
+    if(countUpdated != 0) await _opmBatchClassPropertyUpdate(tempGraphURI, 'insert');
 
     // Clear temp graph
-    q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`
-    await fuseki.updateQuery(projNo,q)
+    await _clearTempGraph();
 
     // Make sure temp file was deleted
     await deleteTempPromise;
@@ -157,11 +131,11 @@ const _opmMain = async (projNo, tempFilePath, tempGraphURI) => {
 
 }
 
-const _opmBatchClassPropertyCreate = (tempGraphURI, queryType) => {
+const _opmBatchClassPropertyCreate = async (tempGraphURI, queryType) => {
 
     if(!queryType) queryType = "select"
 
-    q = ""
+    let q = ""
         
     if(queryType.toLowerCase() == 'select'){
         q+= "SELECT DISTINCT ?classURI ?prop\n"
@@ -199,17 +173,26 @@ const _opmBatchClassPropertyCreate = (tempGraphURI, queryType) => {
             BIND(NOW() AS ?now)\n`
     }
 
-    q+= `}`
+    q+= `}`;
 
-    return ldTools.appendPrefixesToQuery(q)
+    q = ldTools.appendPrefixesToQuery(q);
+
+    if(queryType == 'select'){
+        var x = await fuseki.getQuery(projectNumber, q);
+        return x.results.bindings.length;
+    }else if(queryType == 'insert'){
+        return fuseki.updateQuery(projectNumber, q);
+    }else{
+        throw new Error("Please specify a valid query type");
+    }
 
 }
 
-const _opmBatchClassPropertyUpdate = (tempGraphURI, queryType) => {
+const _opmBatchClassPropertyUpdate = async (tempGraphURI, queryType) => {
     
     if(!queryType) queryType = "select"
 
-    q = ""
+    let q = ""
         
     if(queryType.toLowerCase() == 'select'){
         q+= "SELECT DISTINCT ?classURI ?prop\n"
@@ -253,6 +236,20 @@ const _opmBatchClassPropertyUpdate = (tempGraphURI, queryType) => {
 
     q+= `}`
 
-    return ldTools.appendPrefixesToQuery(q);
+    q = ldTools.appendPrefixesToQuery(q);
 
+    if(queryType == 'select'){
+        var x = await fuseki.getQuery(projectNumber, q);
+        return x.results.bindings.length;
+    }else if(queryType == 'insert'){
+        return fuseki.updateQuery(projectNumber, q);
+    }else{
+        throw new Error("Please specify a valid query type");
+    }
+
+}
+
+const _clearTempGraph = async () => {
+    var q = `DELETE WHERE { GRAPH <${tempGraphURI}> {?s ?p ?o}}`;
+    return fuseki.updateQuery(projectNumber,q);
 }
