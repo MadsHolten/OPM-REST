@@ -28,6 +28,8 @@ Deleted triples will not be removed from the store but the following information
     prov:invalidatedAtTime "currentTime"^^xsd:dateTime .
 ```
 
+Instances that were previously seen, were not seen in a period, and are then seen again will be restored simply by removing the *opm:Deleted* and invalidation time.
+
 ![class-assignment image](./class-assignment.png "class-assignment image")
 
 ### 2. /:projectNumber/opm-upload/property-assignment
@@ -73,6 +75,8 @@ An optional *dsURI* query parameter can be provided (see section 1) and if this 
 <class> a opm:Deleted ;
     prov:invalidatedAtTime "currentTime"^^xsd:dateTime .
 ```
+
+Classes that were previously seen, were not seen in a period, and are then seen again will be restored simply by removing the *opm:Deleted* and invalidation time.
 
 ![class-create image](./class-create.png "class-create image")
 
