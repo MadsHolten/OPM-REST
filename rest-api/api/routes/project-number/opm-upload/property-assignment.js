@@ -138,6 +138,14 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
     // Clear temp graph
     await m.clearTempGraph(projectNumber, tempGraphURI);
 
+    // Update result message
+    if(countNew == 0 && countUpdated == 0){
+        msg = `Nothing was created or updated. No changes were discovered.`;
+    }else{
+        if(countNew) msg+= `Assigned ${countNew} new properties`;
+        if(countUpdated) msg+= `\nUpdated ${countUpdated} existing properties`;
+    }
+
     if(dsURI){
         msg = "***OPM-REST SYNC LOG***\nSuccessfully performed property-assignment task.\n\n"+msg;
         let affectedURIs = newStates.concat(updatedStates);
