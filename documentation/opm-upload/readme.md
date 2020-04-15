@@ -13,12 +13,12 @@ The expected triple format is:
 <el> a <someClass> .
 ```
 
-The triples are inserted in a temporary graph in the Fuseki dataset (matched by `:projectNumber` query parameter). It is checked if the resource already exists and if so, it is skipped. If not, it is inserted and a time stamp is assigned to it.
+The triples are inserted in a temporary graph in the Fuseki dataset (matched by `:projectNumber` query parameter). It is checked if the resource already exists and if so, it is skipped. If not, it is inserted and a time stamp is assigned to it. If the optional *dsURI* is provided, the resource is linked to it using the opm:dataSource predicate.
 
 ```turtle
 <el> a <someClass> ;
     prov:generatedAtTime "currentTime"^^xsd:dateTime ;
-    opm:sourceID "someID" .
+    opm:dataSource <dsURI> .  # OPTIONAL
 ```
 
 Deleted triples will not be removed from the store but the following information will be added:
@@ -38,6 +38,8 @@ A POST request to this route with a turtle file as payload is accepted. The expe
 ```turtle
 <el> <someProperty> "someValue"^^<someDatatype> .
 ```
+
+**NB!** *dsURI* is not yet supported. It would be useful to have the `<generatedPropertyURI>` related to the data source.
 
 The triples are inserted in a temporary graph in the Fuseki dataset (matched by `:projectNumber` query parameter). It is checked if the property has already been assigned to the resource. If the property doesn't already exist, a new property and property state is generated (URIs generated automatically).
 
@@ -66,6 +68,15 @@ A POST request to this route with a turtle file as payload is accepted. The expe
 ```turtle
 <class> a owl:Class ;
     rdfs:subClassOf <someClass> .
+```
+
+The triples are inserted in a temporary graph in the Fuseki dataset (matched by `:projectNumber` query parameter). It is checked if the class already exists  and if so, it is skipped. If not, it is inserted and a time stamp is assigned to it. If the optional *dsURI* is provided, the class is linked to it using the opm:dataSource predicate.
+
+```turtle
+<class> a owl:Class ;
+    rdfs:subClassOf <someClass> ;
+    prov:generatedAtTime "currentTime"^^xsd:dateTime ;
+    opm:dataSource <dsURI> . # OPTIONAL
 ```
 
 If the class doesn't already exist it is created.
@@ -97,6 +108,8 @@ A POST request to this route with a turtle file as payload is accepted. The expe
 ```turtle
 <class> <someProperty> "someValue"^^<someDatatype> .
 ```
+
+**NB!** *dsURI* is not yet supported. It would be useful to have the `<generatedPropertyURI>` related to the data source.
 
 The triples are inserted in a temporary graph in the Fuseki dataset (matched by `:projectNumber` query parameter). It is checked if the property has already been assigned to the class. If the property doesn't already exist, a new property restriction, property and property state is generated (URIs generated automatically).
 
