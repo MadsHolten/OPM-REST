@@ -8,6 +8,7 @@ const multer = require('multer')
 const util = require('util')
 const fs = require('fs')
 const uuidv4 = require('uuid/v4');
+const urljoin = require('url-join');
 
 const deleteFile = util.promisify(fs.unlink)
 const writeFile = util.promisify(fs.writeFile)
@@ -28,22 +29,25 @@ module.exports = (app) => {
         process.env.DEBUG && console.log(`Route: POST /${req.params.projNo}/opm-upload/relationship-assignment`);
 
         // Get data
-        projectNumber = req.params.projNo
+        projectNumber = req.params.projNo;
         dsURI = req.query.dsURI;
+
+        // Make URI for temp graph
+        tempGraphURI = urljoin(process.env.DATA_NAMESPACE, projectNumber, 'rel-ass-temp');
 
         // Get content type header
         const contentType = req.headers['content-type'];
         if(!contentType || contentType == undefined) return next({msg: "Please specify a content-type header", status: 400});
 
         // Set content-type of response
-        res.type('text/plain')
+        res.type('text/plain');
 
         // Handle text
         if(contentType.indexOf('multipart/form-data') == -1){
-            const triples = req.body
+            const triples = req.body;
 
             // Throw error if no data recieved
-            if(!triples) return next({msg: "No triples recieved", status: 400})
+            if(!triples) return next({msg: "No triples recieved", status: 400});
 
             const fileName = uuidv4().toString();
             const tempFilePath = path.join(tempUploadFolder, fileName);
@@ -56,10 +60,11 @@ module.exports = (app) => {
             }
 
             try{
-                const msg = await _opmMain(projectNumber, tempFilePath);
+                const msg = await _opmMain(projectNumber, tempFilePath, tempGraphURI);
                 process.env.DEBUG && console.log('  - '+msg+'\n');
                 res.send(msg);
             }catch(e){
+                console.log(e);
                 return next({msg: e.message, status: e.status})
             }
         }
@@ -80,10 +85,11 @@ module.exports = (app) => {
                 const tempFilePath = path.join(tempUploadFolder, req.file.filename)
 
                 try{
-                    const msg = await _opmMain(projectNumber, tempFilePath);
+                    const msg = await _opmMain(projectNumber, tempFilePath, tempGraphURI);
                     process.env.DEBUG && console.log('  - '+msg+'\n');
                     res.send(msg);
                 }catch(e){
+                    console.log(e);
                     return next({msg: e.message, status: e.status})
                 }
             })
@@ -93,11 +99,31 @@ module.exports = (app) => {
 
 }
 
-const _opmMain = async (projectNumber, tempFilePath) => {
+const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
     var msg = 'Successfully assigned relationships';    // Default message
 
-    await _loadInStore(projectNumber, tempFilePath);
+    if(dsURI){
+        // Upload file to temp graph in triplestore
+        await fuseki.loadFile(projectNumber, tempFilePath, tempGraphURI);
+
+        // Delete temp file (returns promise)
+        var deleteTempPromise = deleteFile(tempFilePath);
+
+        // Write triples
+        await _writeRelationshipTriples(projectNumber, tempGraphURI, dsURI);
+
+        // Clear temp graph
+        await m.clearTempGraph(projectNumber, tempGraphURI);
+
+        // Wait for file delete to resolve
+        await deleteTempPromise;
+    }
+
+    // If no dsURI, simply load it in the graph
+    if(!dsURI){
+        await _loadInStore(projectNumber, tempFilePath);
+    }
 
     if(dsURI){
         msg = "***OPM-REST SYNC LOG***\nSuccessfully performed relationship-assignment task.\n\n"+msg;
@@ -108,13 +134,32 @@ const _opmMain = async (projectNumber, tempFilePath) => {
 
 }
 
+// Simple method that simply loads the entire thing into the store
 const _loadInStore = async (projectNumber, tempFilePath) => {
 
     // Upload file to the main graph
-    await fuseki.loadFile(projectNumber, tempFilePath)
+    await fuseki.loadFile(projectNumber, tempFilePath);
 
     // Delete temp file (returns promise)
-    await deleteFile(tempFilePath)
+    return deleteFile(tempFilePath);
+}
 
-    return;
+// Writes the triples to the store and appends data source to subject and object
+const _writeRelationshipTriples = async (projectNumber, tempGraphURI, dsURI) => {
+
+    const q = `
+    PREFIX opm: <https://w3id.org/opm#>
+    INSERT{
+        ?s ?rel ?o .
+        ?s opm:dataSource <${dsURI}> .
+        ?o opm:dataSource <${dsURI}> .
+    }WHERE{
+        GRAPH <${tempGraphURI}> {
+            ?s ?rel ?o
+        }
+    }`;
+
+    // return fuseki.updateQuery(projectNumber, q);
+    return fuseki.updateQuery(projectNumber, q);
+
 }
