@@ -111,3 +111,32 @@ The `class-property-assignment.dyn` Dynamo script demonstrates how this is done 
 Example file generated with this script located in `data/sample_data`:
 
 * Duplex_class-properties_wall-type-width.ttl
+
+### Read from store in Revit
+
+There might be situations where you would like to read results back into Revit. For example to overwrite a parameter. The *get-query.dy* script can handle this.
+
+![GET Query](./get-query.png "get-query")
+
+You will have to make changes to the Python script to process the response and therefore we also suggest hiding the query inside the script itself.
+
+The part of the script where you will have to make changes is here:
+
+```python
+...
+	
+	# Parse JSON and extract subjects
+	dictionary = json.loads(text)
+	
+	bindings = dictionary['results']['bindings']
+	
+	subjects = []
+	for item in bindings:
+		subjects.append(item['s']['value'])
+
+...
+	
+#Assign your output to the OUT variable.
+OUT = subjects
+```
+For example, the above loads the JSON result into a dictionary. Then the bindings are saved in a variable, and while looping over the bindings, a list of subjects is filled. Mind that we have changed the OUT parameter to the list of subjects in the above example.

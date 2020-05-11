@@ -1,0 +1,341 @@
+{
+  "Uuid": "f80391fd-7f5f-4b57-a94b-744ffb0bea2d",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "get-query",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\r\nimport sys\r\nsys.path.append('C:\\Program Files (x86)\\IronPython 2.7\\Lib')\r\nimport httplib, urllib, base64, json\r\n\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import *\r\n#The inputs to this node will be stored as a list in the IN variables.\r\nendpoint = IN[0]\r\nquery = IN[1]\r\nuser = IN[2]\r\npw = IN[3]\r\ngo = IN[4]\r\n\r\nif go:\r\n\t\r\n\t# DB CONNECTION\r\n\turl = endpoint.split('/')[0]\r\n\trest = endpoint.split(url)[1]\r\n\t\r\n\t# Establish connection\r\n\tconn = httplib.HTTPConnection(url)\r\n\t\r\n\t# Authentication\r\n\tauth = base64.encodestring('%s:%s' % (user, pw)).replace('\\n', '')\r\n\t\r\n\t# URL encode payload\r\n\tf = { 'query' : query}\r\n\tpayload = urllib.urlencode(f)\r\n\t\r\n\t# Define headers for authorization etc.\r\n\theaders = {\r\n\t\t'Accept' : 'application/sparql-results+json',\r\n\t\t'Content-Type': 'application/x-www-form-urlencoded',\r\n\t\t'Authorization': 'Basic %s' % auth\r\n\t}\r\n\t\r\n\tdata = payload\r\n\t\r\n\tconn.request(\"POST\", rest, payload, headers)\r\n\t\r\n\t# Get response\r\n\tres = conn.getresponse()\r\n\tdata = res.read()\r\n\t\r\n\ttext = data.decode(\"utf-8\")\r\n\t\r\n\t# Parse JSON and extract subjects\r\n\tdictionary = json.loads(text)\r\n\t\r\n\tbindings = dictionary['results']['bindings']\r\n\t\r\n\tsubjects = []\r\n\tfor item in bindings:\r\n\t\tsubjects.append(item['s']['value'])\r\n\t\r\n\t# Close db connection\r\n\tconn.close()\r\n\r\nelse:\r\n\tdata = 'off mode'\r\n\t\r\n#Assign your output to the OUT variable.\r\nOUT = text\r\n",
+      "VariableInputPorts": true,
+      "Id": "90489a1cfcc64722b09977017e2bc9ff",
+      "Inputs": [
+        {
+          "Id": "002b14146cb14bfaa6fcce2c060de47a",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "77c9f27dbaa54f8997c63928f6347f5f",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "cc8b840bf05f4c63a64e9da70d166408",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "cdf279fff6dc4736aeef208c96601518",
+          "Name": "IN[3]",
+          "Description": "Input #3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "c0861f03121f4ec994256e877006c7bd",
+          "Name": "IN[4]",
+          "Description": "Input #4",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "8380e680b15f4c868ea57821559b83e5",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"localhost:3031/1111/query\";",
+      "Id": "e1ff7b95be31441eba9fb1fdf33a0473",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "c7db8fb0d1854a73bb0d82541573b9ca",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"admin\";",
+      "Id": "a22a9c82e84349c7902bd2c31237a2b8",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "de79efe17afc483a9f4eec52cc908563",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"admin\";",
+      "Id": "b45c408b2611436ea32c64c70a232cd0",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "f5bb08d3168a4d5a8abcb3bbc230f194",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": true,
+      "Id": "0232332a17214266a82666728a23cd57",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "b773827c1733482ab4ea3b96ea15d3b9",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "54430812e339434e83197fea739fc59d",
+      "Inputs": [
+        {
+          "Id": "db40bcfab9b24332be14e60943bd8d8f",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "78954fcca7a64fa4876130dc94fc2366",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"SELECT * WHERE { ?s ?p ?o } LIMIT 10\";",
+      "Id": "ac7160da9cab4870885ad5c0b287722e",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "009a853b4c20462aa9ae94c0ba4de486",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "8380e680b15f4c868ea57821559b83e5",
+      "End": "db40bcfab9b24332be14e60943bd8d8f",
+      "Id": "19220045eaa94348badac26eff70b82a"
+    },
+    {
+      "Start": "c7db8fb0d1854a73bb0d82541573b9ca",
+      "End": "002b14146cb14bfaa6fcce2c060de47a",
+      "Id": "446f4a2587b845ad97c1a0ed8f8f4078"
+    },
+    {
+      "Start": "de79efe17afc483a9f4eec52cc908563",
+      "End": "cdf279fff6dc4736aeef208c96601518",
+      "Id": "f900812e40a34b95bf723e9b5e852355"
+    },
+    {
+      "Start": "f5bb08d3168a4d5a8abcb3bbc230f194",
+      "End": "cc8b840bf05f4c63a64e9da70d166408",
+      "Id": "df1c0a12d9e247b588324a3c343d185d"
+    },
+    {
+      "Start": "b773827c1733482ab4ea3b96ea15d3b9",
+      "End": "c0861f03121f4ec994256e877006c7bd",
+      "Id": "8e64ef9007924a2893b8f4388eea850a"
+    },
+    {
+      "Start": "009a853b4c20462aa9ae94c0ba4de486",
+      "End": "77c9f27dbaa54f8997c63928f6347f5f",
+      "Id": "a20031410872493e9204da1b6f72001b"
+    }
+  ],
+  "Dependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.0.2.6826",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "90489a1cfcc64722b09977017e2bc9ff",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 396.17892190133085,
+        "Y": 120.50089020771514
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Endpoint",
+        "Id": "e1ff7b95be31441eba9fb1fdf33a0473",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 3.6142433234421674,
+        "Y": 49.922255192878396
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Password",
+        "Id": "a22a9c82e84349c7902bd2c31237a2b8",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 168.29080118694361,
+        "Y": 334.73175074183985
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "User",
+        "Id": "b45c408b2611436ea32c64c70a232cd0",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 167.7412462908012,
+        "Y": 243.22908011869433
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Boolean",
+        "Id": "0232332a17214266a82666728a23cd57",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 129.02551928783379,
+        "Y": 423.94065281899123
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "54430812e339434e83197fea739fc59d",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 698.87477744807109,
+        "Y": 96.591097922848718
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Query",
+        "Id": "ac7160da9cab4870885ad5c0b287722e",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -87.133531157269886,
+        "Y": 149.13353115727003
+      }
+    ],
+    "Annotations": [],
+    "X": 98.345724502784208,
+    "Y": 29.929985375953777,
+    "Zoom": 0.822695359375
+  }
+}
