@@ -1,7 +1,5 @@
 
 const m = require('./methods');
-const fuseki = require('../../../helpers/fuseki-connection');
-const config = require('../../../../config.json');
 const path = require('path');
 const uploadsFolder = path.join(__dirname, '../../../../static/uploads');
 const tempUploadFolder = path.join(uploadsFolder, '/temp');
@@ -51,6 +49,9 @@ module.exports = (app) => {
 
         // Handle text
         if(contentType.indexOf('multipart/form-data') == -1){
+
+            process.env.DEBUG && console.log(`Handling text/turtle body...`);
+
             const triples = req.body;
 
             // Throw error if no data recieved
@@ -79,6 +80,8 @@ module.exports = (app) => {
 
         // Handle file
         else{
+
+            process.env.DEBUG && console.log(`Handling file...`);
 
             // Get file content and load it in temp graph
             upload(req, res, async (err) => {
@@ -114,7 +117,7 @@ const _opmMain = async (tempFilePath) => {
     var msg;
 
     // Upload file to temp graph in triplestore
-    await fuseki.loadFile(projectNumber, tempFilePath, tempGraphURI)
+    await global.helpers.triplestoreConnection.loadFile(projectNumber, tempFilePath, tempGraphURI)
 
     // Delete temp file (returns promise)
     var deleteTempPromise = deleteFile(tempFilePath)
@@ -191,7 +194,7 @@ const _getNew = async () => {
                 ?s a ?class
             }
         }`;
-    const x = await fuseki.getQuery(projectNumber, q);
+    const x = await global.helpers.triplestoreConnection.getQuery(projectNumber, q);
 
     if(x.results.bindings.length){
         return x.results.bindings.map(item => item.s.value);
@@ -222,7 +225,7 @@ const _getDeleted = async () => {
             }
         }`;
 
-    var x = await fuseki.getQuery(projectNumber, q);
+    var x = await global.helpers.triplestoreConnection.getQuery(projectNumber, q);
     const URIs = x.results.bindings.map(item => item.s.value);
 
     return URIs;
@@ -245,7 +248,7 @@ const _getRestored = async () => {
                 opm:dataSource <${dsURI}> .
         }`;
 
-    var x = await fuseki.getQuery(projectNumber, q);
+    var x = await global.helpers.triplestoreConnection.getQuery(projectNumber, q);
     const URIs = x.results.bindings.map(item => item.s.value);
 
     return URIs;
@@ -279,5 +282,5 @@ const _writeNewClassAssignments = async () => {
             BIND(NOW() as ?now)
         }`;
 
-    return fuseki.updateQuery(projectNumber,q);
+    return global.helpers.triplestoreConnection.updateQuery(projectNumber,q);
 }

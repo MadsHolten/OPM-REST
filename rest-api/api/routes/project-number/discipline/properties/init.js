@@ -1,5 +1,3 @@
-const fuseki = require('../../../../helpers/fuseki-connection');
-const config = require('../../../../../config.json');
 const OPMProp = require('opm-qg').OPMProp;
 const OPMCalc = require('opm-qg').OPMCalc;
 const urljoin = require('url-join');
@@ -26,7 +24,7 @@ module.exports = (app) => {
             process.env.DEBUG && console.log(q);
 
             // Run query
-            var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
+            var qRes = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
             res.send(_buildOPMPropTree(qRes));
         }catch(e){
             next({msg: e.message, status: e.status});
@@ -52,7 +50,7 @@ module.exports = (app) => {
             const q = opmProp.getPropertyHistory(propURI);
 
             // Execute query
-            var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
+            var qRes = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
             res.send(_buildOPMPropTree(qRes));
             // res.send(qRes);
         }catch(e){
@@ -79,7 +77,7 @@ module.exports = (app) => {
             const q = opmCalc.getSubscribers({propertyURI});
 
             // Execute query
-            var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
+            var qRes = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
             res.send(qRes);
             // res.send(qRes);
         }catch(e){
@@ -118,7 +116,7 @@ module.exports = (app) => {
                 const q = opmProp.putProperty(propertyURI, value);
 
                 // Execute update query
-                await fuseki.updateQuery(projNo, q);
+                await global.helpers.triplestoreConnection.updateQuery(projNo, q);
                 res.send({msg: "Successfully updated property"});
             }catch(e){
                 next({msg: e.message, status: e.status});
@@ -157,7 +155,7 @@ module.exports = (app) => {
 
                 var calcData;
                 try{
-                    var graph = await fuseki.getQuery(projNo, q, 'application/ld+json');
+                    var graph = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
 
                     const context = {
                         "@context": {
@@ -183,16 +181,16 @@ module.exports = (app) => {
 
                     try{
                         // Generate OPM query
-                        const opmCalc = new OPMCalc(namespace, config.namespaces);
+                        const opmCalc = new OPMCalc(namespace, global.config.namespaces);
                         const q = opmCalc.putCalc(calcData);
 
                         if(materialize){
                             // Execute update query
-                            await fuseki.updateQuery(projNo, q);
+                            await global.helpers.triplestoreConnection.updateQuery(projNo, q);
                             res.send({msg: "Successfully updated property"});
                         }else{
                             // Execute get query
-                            const qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
+                            const qRes = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
                             res.send(qRes);
                         }
                         

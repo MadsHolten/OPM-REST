@@ -1,6 +1,3 @@
-const fuseki = require('../../../helpers/fuseki-connection');
-const ldTools = require('../../../helpers/ld-tools');
-
 module.exports = {
 
     // Check if a JSON-LD graph item includes the specified type or a subset of it
@@ -17,7 +14,7 @@ module.exports = {
 
     clearTempGraph: async (projectNumber, graphURI) => {
         var q = `DELETE WHERE { GRAPH <${graphURI}> {?s ?p ?o}}`;
-        return fuseki.updateQuery(projectNumber,q);
+        return global.helpers.triplestoreConnection.updateQuery(projectNumber,q);
     },
 
     // The sync log
@@ -49,8 +46,7 @@ module.exports = {
             ${aff ? 'VALUES ?affected { '+affectedURIs+ ' }' : ''}
         }`;
 
-        q = ldTools.appendPrefixesToQuery(q);
-        return fuseki.updateQuery(projectNumber,q);
+        return global.helpers.triplestoreConnection.updateQuery(projectNumber,q);
 
     },
 
@@ -72,7 +68,7 @@ module.exports = {
                 BIND(NOW() as ?now)
             }`;
     
-        return fuseki.updateQuery(projectNumber,q);
+        return global.helpers.triplestoreConnection.updateQuery(projectNumber,q);
     
     },
 
@@ -95,7 +91,7 @@ module.exports = {
                     prov:invalidatedAtTime ?t .
             }`;
     
-        return fuseki.updateQuery(projectNumber,q);
+        return global.helpers.triplestoreConnection.updateQuery(projectNumber,q);
     
     }
 

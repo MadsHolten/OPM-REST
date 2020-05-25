@@ -1,12 +1,18 @@
 const express = require('express');
 const bodyParser = require('body-parser');     // To parse HTTP body element
-const cors = require('cors');                    // To allow Cross Origin requests
+const cors = require('cors');                  // To allow Cross Origin requests
 const app = express();
+const compression = require('compression');
+
+// GLOBALS
+global.helpers = require('./helpers')
+global.config = require('../config.json')
 
 // MIDDLEWARE
+app.use(compression());
 app.use(bodyParser({limit: '500mb'}));
-app.use(bodyParser.json({ type: 'application/*+json' }));   // Parse JSON
-app.use(bodyParser.text({ type: 'text/turtle' }));          // Parse turtle
+app.use(bodyParser.json({ type: 'application/*+json' }));           // Parse JSON
+app.use(bodyParser.text({ limit: '500mb', type: 'text/turtle' }));  // Parse turtle
 app.use(cors());
 
 // ROUTES

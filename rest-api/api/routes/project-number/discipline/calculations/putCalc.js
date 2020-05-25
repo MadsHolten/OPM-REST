@@ -1,6 +1,4 @@
-const fuseki = require('../../../../helpers/fuseki-connection');
 const ldt = require('../../../../helpers/ld-tools');
-const config = require('../../../../../config.json');
 const OPMCalc = require('opm-qg').OPMCalc;
 const urljoin = require('url-join');
 const jsonld = require('jsonld');
@@ -23,7 +21,7 @@ module.exports = (app) => {
         // Build URI and initialize OPMCalc
         const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
         const calculationURI = urljoin(namespace, 'calculations', id);
-        const opmCalc = new OPMCalc(namespace, config.namespaces);
+        const opmCalc = new OPMCalc(namespace, global.config.namespaces);
 
         // Get calculation data
         var calcData;
@@ -33,7 +31,7 @@ module.exports = (app) => {
             process.env.DEBUG && console.log('---\n'+query);
 
             // Run query
-            var qRes = await fuseki.getQuery(projNo, query, 'application/ld+json');
+            var qRes = await global.helpers.triplestoreConnection.getQuery(projNo, query, 'application/ld+json');
             calcData = await _transformRes(qRes);
             calcData.calculationURI = calculationURI;
         }catch(e){
@@ -50,7 +48,7 @@ module.exports = (app) => {
                 query = opmCalc.putCalc(calcData);
                 process.env.DEBUG && console.log('---\n'+query);
 
-                var count = await fuseki.getQuery(projNo, query);
+                var count = await global.helpers.triplestoreConnection.getQuery(projNo, query);
                 count = count.results.bindings[0].count.value;
                 process.env.DEBUG && console.log('---\n'+count+' new results to insert');
                 var msg = count == 0 ? 'There were no new calculation results to insert' : `successfully inserted ${count} calculation results.`;
@@ -60,7 +58,7 @@ module.exports = (app) => {
                     calcData.queryType = 'insert';
                     query = opmCalc.putCalc(calcData);
                     process.env.DEBUG && console.log('---\n'+query);
-                    await fuseki.updateQuery(projNo, query);
+                    await global.helpers.triplestoreConnection.updateQuery(projNo, query);
                 }
                 
                 res.send({msg});
@@ -70,7 +68,7 @@ module.exports = (app) => {
                 query = opmCalc.putCalc(calcData);
                 process.env.DEBUG && console.log('---\n'+query);
 
-                var inserted = await fuseki.getQuery(projNo, query, 'application/ld+json');
+                var inserted = await global.helpers.triplestoreConnection.getQuery(projNo, query, 'application/ld+json');
                 res.send(inserted);
             }
         }catch(e){

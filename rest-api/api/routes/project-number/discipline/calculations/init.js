@@ -1,5 +1,3 @@
-const fuseki = require('../../../../helpers/fuseki-connection');
-const config = require('../../../../../config.json');
 const OPMCalc = require('opm-qg').OPMCalc;
 const urljoin = require('url-join');
 const { check, validationResult } = require('express-validator/check');
@@ -17,11 +15,11 @@ module.exports = (app) => {
         const discipline = req.params.discipline;
         const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
 
-        const opmCalc = new OPMCalc(namespace, config.prefixes);
+        const opmCalc = new OPMCalc(namespace, global.config.prefixes);
         const q = opmCalc.listCalculations();
         
         try{
-            var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
+            var qRes = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
             res.send(qRes);
         }catch(e){
             next({msg: e.message, status: e.status});
@@ -39,12 +37,12 @@ module.exports = (app) => {
         const discipline = req.params.discipline;
         const namespace = urljoin(process.env.DATA_NAMESPACE, projNo, discipline);
 
-        const opmCalc = new OPMCalc(namespace, config.prefixes);
+        const opmCalc = new OPMCalc(namespace, global.config.prefixes);
         const q = opmCalc.getOutdated();
         console.log(q);
         
         try{
-            var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
+            var qRes = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
             res.send(qRes);
         }catch(e){
             next({msg: e.message, status: e.status});
@@ -78,11 +76,11 @@ module.exports = (app) => {
         body.queryType = 'insert';
 
         // Generate query with opmCalc
-        const opmCalc = new OPMCalc(namespace, config.namespaces);
+        const opmCalc = new OPMCalc(namespace, global.config.namespaces);
         const q = opmCalc.postCalcData(body);
 
         try{
-            await fuseki.updateQuery(projNo, q);
+            await global.helpers.triplestoreConnection.updateQuery(projNo, q);
             res.send({msg: 'successfully created calculation'});
         }catch(e){
             next({msg: e.message, status: e.status});
@@ -108,7 +106,7 @@ module.exports = (app) => {
         process.env.DEBUG && console.log("---\n"+q);
         
         try{
-            var qRes = await fuseki.getQuery(projNo, q, 'application/ld+json');
+            var qRes = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
             res.send(qRes);
         }catch(e){
             next({msg: e.message, status: e.status});

@@ -1,6 +1,5 @@
-const fuseki = require('../../../../helpers/fuseki-connection');
+
 const uriGen = require('../../../../helpers/uri-create');
-const config = require('../../../../../config.json');
 const urljoin = require('url-join');
 
 module.exports = (app) => {
@@ -15,7 +14,7 @@ module.exports = (app) => {
         const discipline = req.params.discipline;
         const elementType = req.params.elementType;
     
-        var match = config.typeMappings.find(item => item.category == elementType);
+        var match = global.config.typeMappings.find(item => item.category == elementType);
         if(!match){
             next({msg: "No match for the specified element type", status: 400})
         }else{
@@ -31,11 +30,9 @@ module.exports = (app) => {
                 ?s a ?class ;
                     ?p ?o
             }`;
-
-            q = util.appendPrefixesToQuery(q);
             
             try{
-                var qRes = await fuseki.getQuery(projNo,q,'application/ld+json');
+                var qRes = await global.helpers.triplestoreConnection.getQuery(projNo,q,'application/ld+json');
                 res.send(qRes);
             }catch(e){
                 console.log(err)
@@ -69,7 +66,7 @@ module.exports = (app) => {
                 }`;
 
         try{
-            var qRes = await fuseki.getQuery(projectNumber,q,"application/ld+json");
+            var qRes = await global.helpers.triplestoreConnection.getQuery(projectNumber,q,"application/ld+json");
             res.send(qRes);
         }
         catch(err){
@@ -92,7 +89,7 @@ module.exports = (app) => {
         const URI = urljoin(process.env.DATA_NAMESPACE, projNo, discipline, elementType, uuidv4());
     
         // First check if there is a match in the type mappings list
-        var tmMatch = config.typeMappings.find(item => item.category == elementType);
+        var tmMatch = global.config.typeMappings.find(item => item.category == elementType);
         if(tmMatch){
             var classes = tmMatch.types.join(' ');
     
@@ -105,11 +102,9 @@ module.exports = (app) => {
                 VALUES ?class { ${classes} }
                 BIND(NOW() AS ?now)
             }`;
-    
-            q = util.appendPrefixesToQuery(q);
             
             try{
-                await fuseki.updateQuery(projNo,q);
+                await global.helpers.triplestoreConnection.updateQuery(projNo,q);
                 res.send({msg: `created new resource with URI ${URI}`, URI});
             }catch(e){
                 next({msg: e, status: 500})

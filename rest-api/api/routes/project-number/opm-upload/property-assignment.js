@@ -1,7 +1,4 @@
 const m = require('./methods');
-const fuseki = require('../../../helpers/fuseki-connection')
-const ldTools = require('../../../helpers/ld-tools')
-const config = require('../../../../config.json')
 const path = require('path')
 const uploadsFolder = path.join(__dirname, '../../../../static/uploads')
 const tempUploadFolder = path.join(uploadsFolder, '/temp')
@@ -46,15 +43,17 @@ module.exports = (app) => {
 
         // Handle text
         if(contentType.indexOf('multipart/form-data') == -1){
+
+            process.env.DEBUG && console.log(`Handling text/turtle body...`);
+
             const triples = req.body;
 
             // Throw error if no data recieved
-            if(!triples) return next({msg: "No triples recieved", status: 400})
-
-            const fileName = uuidv4().toString();
-            const tempFilePath = path.join(tempUploadFolder, fileName);
+            if(!triples) return next({msg: "No triples recieved", status: 400});
 
             // Write triples to a file
+            const fileName = uuidv4().toString();
+            const tempFilePath = path.join(tempUploadFolder, fileName);
             try{
                 await writeFile(tempFilePath, triples);
                 console.log("Wrote local file");
@@ -76,6 +75,8 @@ module.exports = (app) => {
 
         // Handle file
         else{
+
+            process.env.DEBUG && console.log(`Handling file...`);
             
             // Get file content and load it in temp graph
             upload(req, res, async (err) => {
@@ -109,30 +110,44 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
     var msg;
 
+    process.env.DEBUG && console.log(`Uploading file to temp graph in triplestore`);
+
     // Upload file to temp graph in triplestore
-    await fuseki.loadFile(projectNumber, tempFilePath, tempGraphURI);
+    await global.helpers.triplestoreConnection.loadFile(projectNumber, tempFilePath, tempGraphURI);
+
+    process.env.DEBUG && console.log(`Deleting local temp file`);
 
     // Delete temp file (returns promise)
     var deleteTempPromise = deleteFile(tempFilePath)
 
+    process.env.DEBUG && console.log(`Counting the number of new properties that will be created`);
+
     // Count the number of new properties that will be created
     const {newStates, newTriples} = await _opmBatchCreate();
+
     countNew = newStates.length;
+
+    process.env.DEBUG && console.log(`Counting the number of new properties that will be updated`);
 
     // Count the number of properties that will be updated
     const {updatedStates, updatedTriples} = await _opmBatchUpdate();
     const countUpdated = updatedStates.length;
 
     // Insert new properties
-    if(countNew != 0)  await fuseki.loadTriples(projectNumber, newTriples, 'application/ld+json');
+    if(countNew != 0){
+        process.env.DEBUG && console.log(`Inserting new properties`);
+        process.env.DEBUG && console.log(newStates);
+        await global.helpers.triplestoreConnection.loadTriples(projectNumber, newTriples, 'application/ld+json');
+    }
         
     // Insert updated property states
     if(countUpdated != 0){
-        let promises = [
-            fuseki.loadTriples(projectNumber, updatedTriples, 'application/ld+json'),
+        process.env.DEBUG && console.log(`Inserting updated property states`);
+        process.env.DEBUG && console.log(updatedStates);
+        await Promise.all([
+            global.helpers.triplestoreConnection.loadTriples(projectNumber, updatedTriples, 'application/ld+json'),
             _opmMarkOutdated()
-        ];
-        await Promise.all(promises);
+        ]);
     }
 
     // Clear temp graph
@@ -181,9 +196,7 @@ const _opmBatchCreate = async () => {
             BIND(NOW() AS ?now)
         }`;
     
-    q = ldTools.appendPrefixesToQuery(q);
-
-    let newTriples = await fuseki.getQuery(projectNumber, q, 'application/ld+json');
+    let newTriples = await global.helpers.triplestoreConnection.getQuery(projectNumber, q, 'application/ld+json');
 
     let newStates = [];
     if(newTriples['@graph']){
@@ -210,8 +223,7 @@ const _opmMarkOutdated = async () => {
                 schema:value ?currentVal .
             FILTER(xsd:string(?newVal) != xsd:string(?currentVal))
         }`;
-    q = ldTools.appendPrefixesToQuery(q);
-    return fuseki.updateQuery(projectNumber, q);
+    return global.helpers.triplestoreConnection.updateQuery(projectNumber, q);
 }
 
 const _opmBatchUpdate = async () => {
@@ -238,9 +250,9 @@ const _opmBatchUpdate = async () => {
             BIND(NOW() AS ?now)
         }`;
 
-    q = ldTools.appendPrefixesToQuery(q);
+    let updatedTriples = await global.helpers.triplestoreConnection.getQuery(projectNumber, q, 'application/ld+json');
 
-    let updatedTriples = await fuseki.getQuery(projectNumber, q, 'application/ld+json');
+    console.log(updatedTriples);
 
     let updatedStates = [];
     if(updatedTriples['@graph']){

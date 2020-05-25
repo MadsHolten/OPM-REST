@@ -1,5 +1,3 @@
-const fuseki = require('../../../helpers/fuseki-connection')
-
 module.exports = (app) => {
 
     // DESCRIBE RESOURCE
@@ -12,7 +10,7 @@ module.exports = (app) => {
         const query = req.query.query;
 
         try{
-            var qRes = await fuseki.updateQuery(projNo, query);
+            var qRes = await global.helpers.triplestoreConnection.updateQuery(projNo, query);
             res.send(qRes);
         }catch(e){
             next({msg: e.message, status: e.status});

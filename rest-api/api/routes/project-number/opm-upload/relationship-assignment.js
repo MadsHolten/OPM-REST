@@ -1,6 +1,4 @@
 const m = require('./methods');
-const fuseki = require('../../../helpers/fuseki-connection')
-const config = require('../../../../config.json')
 const path = require('path')
 const uploadsFolder = path.join(__dirname, '../../../../static/uploads')
 const tempUploadFolder = path.join(uploadsFolder, '/temp')
@@ -44,6 +42,9 @@ module.exports = (app) => {
 
         // Handle text
         if(contentType.indexOf('multipart/form-data') == -1){
+
+            process.env.DEBUG && console.log(`Handling text/turtle body...`);
+
             const triples = req.body;
 
             // Throw error if no data recieved
@@ -71,6 +72,8 @@ module.exports = (app) => {
 
         // Handle file
         else{
+
+            process.env.DEBUG && console.log(`Handling file...`);
 
             // Get file content and load it in temp graph
             upload(req, res, async (err) => {
@@ -105,7 +108,7 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
     if(dsURI){
         // Upload file to temp graph in triplestore
-        await fuseki.loadFile(projectNumber, tempFilePath, tempGraphURI);
+        await global.helpers.triplestoreConnection.loadFile(projectNumber, tempFilePath, tempGraphURI);
 
         // Delete temp file (returns promise)
         var deleteTempPromise = deleteFile(tempFilePath);
@@ -138,7 +141,7 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 const _loadInStore = async (projectNumber, tempFilePath) => {
 
     // Upload file to the main graph
-    await fuseki.loadFile(projectNumber, tempFilePath);
+    await global.helpers.triplestoreConnection.loadFile(projectNumber, tempFilePath);
 
     // Delete temp file (returns promise)
     return deleteFile(tempFilePath);
@@ -159,7 +162,7 @@ const _writeRelationshipTriples = async (projectNumber, tempGraphURI, dsURI) => 
         }
     }`;
 
-    // return fuseki.updateQuery(projectNumber, q);
-    return fuseki.updateQuery(projectNumber, q);
+    // return global.helpers.triplestoreConnection.updateQuery(projectNumber, q);
+    return global.helpers.triplestoreConnection.updateQuery(projectNumber, q);
 
 }

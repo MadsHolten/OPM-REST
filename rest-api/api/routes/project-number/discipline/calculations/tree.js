@@ -1,6 +1,5 @@
-const fuseki = require('../../../../helpers/fuseki-connection');
+
 const ldt = require('../../../../helpers/ld-tools');
-const config = require('../../../../../config.json');
 const OPMCalc = require('opm-qg').OPMCalc;
 const urljoin = require('url-join');
 const jsonld = require('jsonld');
@@ -24,7 +23,7 @@ module.exports = (app) => {
             const q = _getAllCalculationsQuery();
 
             // Execute query
-            var data = await fuseki.getQuery(projNo, q, 'application/ld+json');
+            var data = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
         }catch(e){
             next({msg: e.message, status: e.status});
         }
