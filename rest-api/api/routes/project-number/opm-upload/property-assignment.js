@@ -252,14 +252,12 @@ const _opmBatchUpdate = async () => {
 
     let updatedTriples = await global.helpers.triplestoreConnection.getQuery(projectNumber, q, 'application/ld+json');
 
-    console.log(updatedTriples);
-
     let updatedStates = [];
     if(updatedTriples['@graph']){
         updatedStates = updatedTriples['@graph']
                             .filter(item => m.belongsToClass(item, 'CurrentPropertyState'))
                             .map(item => item['@id']);
-    } 
+    }
 
     return{updatedStates, updatedTriples};
 

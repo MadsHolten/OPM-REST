@@ -3,6 +3,7 @@ const OPMCalc = require('opm-qg').OPMCalc;
 const urljoin = require('url-join');
 const { check, validationResult } = require('express-validator/check');
 const jsonld = require('jsonld');
+const uuidv4 = require('uuid/v4');
 
 module.exports = (app) => {
 
@@ -24,6 +25,10 @@ module.exports = (app) => {
             process.env.DEBUG && console.log(q);
 
             // Run query
+            // var qRes = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
+            // res.send(_buildOPMPropTree(qRes));
+
+            // Execute query
             var qRes = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
             res.send(_buildOPMPropTree(qRes));
         }catch(e){
@@ -52,7 +57,6 @@ module.exports = (app) => {
             // Execute query
             var qRes = await global.helpers.triplestoreConnection.getQuery(projNo, q, 'application/ld+json');
             res.send(_buildOPMPropTree(qRes));
-            // res.send(qRes);
         }catch(e){
             next({msg: e.message, status: e.status});
         }
@@ -108,16 +112,55 @@ module.exports = (app) => {
 
         // If a value is provided in the body, update the value by inserting a new property state
         if(body && body.value){
-            const value = `"${body.value}"^^<${body.type}>`;
+            let value = `"${body.value}"`;
+            if(body.type){
+                if(body.type.includes("http")){
+                    value+= `^^<${body.type}>`;
+                }else if(body.type.includes(":")){
+                    value+= `^^${body.type}`;
+                }
+            }
+
+            // Create URI for new state (better here than through query such that same URI is used in all stores in case more stores are used)
+            const stateURI = urljoin(process.env.DATA_NAMESPACE, projNo, discipline, 'states', uuidv4());
 
             try{
-                // Generate OPM query
-                const opmProp = new OPMProp(namespace);
-                const q = opmProp.putProperty(propertyURI, value);
+
+                const q = 
+                `DELETE {
+                    ?previousState a opm:CurrentPropertyState .
+                }
+                INSERT {
+                    ?previousState a opm:OutdatedPropertyState . 
+                    ?propertyURI opm:hasPropertyState ?stateURI .
+                    ?stateURI a opm:PropertyState , opm:CurrentPropertyState ;
+                        schema:value ?val ;
+                        prov:generatedAtTime ?now .
+                }
+                WHERE {
+                    BIND(now() AS ?now)
+                    BIND(<${propertyURI}> AS ?propertyURI)
+                    BIND(<${stateURI}> AS ?stateURI)
+                    BIND(${value} AS ?val)
+                    
+                    # GET DATA FROM LATEST STATE
+                    ?propertyURI opm:hasPropertyState ?previousState . 
+                    ?previousState a opm:CurrentPropertyState ; 
+                        schema:value ?previousVal .
+                    
+                    # FILTER OUT DELETED, DERIVED OR CONFIRMED 
+                    MINUS{ ?previousState a opm:Deleted } 
+                    MINUS{ ?previousState a opm:Confirmed } 
+                    MINUS{ ?previousState a opm:Derived } 
+                    
+                    # VALUE SHOULD BE DIFFERENT FROM THE PREVIOUS 
+                    FILTER( str(?previousVal) != str(?val) ) 
+                }`
 
                 // Execute update query
                 await global.helpers.triplestoreConnection.updateQuery(projNo, q);
                 res.send({msg: "Successfully updated property"});
+
             }catch(e){
                 next({msg: e.message, status: e.status});
             }
@@ -214,32 +257,34 @@ module.exports = (app) => {
 }
 
 // NB! This should be extended to provide a more generic approach for building the trees
-_buildOPMPropTreeNew = (jsonld) => {
+// _buildOPMPropTreeNew = (jsonld) => {
 
-    // Create tree structure
-    var formatted = [];
-    const root = jsonld['@graph'];
+//     console.log(jsonld)
 
-    root.forEach(item => {
-        var keys = Object.keys(item);
-        var values = Object.values(item);
-        values.forEach((val, i) => {
-            if(_isURI(val)){
-                var match = root.find(x => x['@id'] == val)
-                if(match){
-                    item[keys[i]] == match;
-                    root.pop(match)
-                }
-            }
-        })
+//     // Create tree structure
+//     var formatted = [];
+//     const root = jsonld['@graph'];
 
-        return item;
-    })
+//     root.forEach(item => {
+//         var keys = Object.keys(item);
+//         var values = Object.values(item);
+//         values.forEach((val, i) => {
+//             if(_isURI(val)){
+//                 var match = root.find(x => x['@id'] == val)
+//                 if(match){
+//                     item[keys[i]] == match;
+//                     root.pop(match)
+//                 }
+//             }
+//         })
 
-    jsonld['@graph'] = formatted;
-    return formatted;
+//         return item;
+//     })
+
+//     jsonld['@graph'] = formatted;
+//     return formatted;
     
-}
+// }
 
 _isURI = (str) => {
     return /^http/.test(str);
@@ -273,6 +318,6 @@ _buildOPMPropTree = (jsonld) => {
     })
 
     jsonld['@graph'] = formatted;
-    return formatted;
+    return jsonld;
     
 }

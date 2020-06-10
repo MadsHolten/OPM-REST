@@ -60,4 +60,72 @@ ldt.appendContext = (prefixedURI) => {
     return match.uri+rest;
 }
 
+/**
+ * Takes a graph and appends matching '@id's in a tree structure
+ * 
+ * Example:
+ * [
+ *      {
+ *          "@id": "http://x",
+ *          "someProp": "http://y"
+ *      },
+ *      {
+ *          "@id": "http://y",
+ *          "hasPropertyState": "http://z"
+ *      },
+ *      {
+ *          "@id": "http://z",
+ *          "value": "abc"
+ *      }
+ * ]
+ * Becomes:
+ * [
+ *      {
+ *          "@id": "http://x",
+ *          "someProp": {
+ *              "@id": "http://y",
+ *              "hasPropertyState": {
+ *                  "@id": "http://z",
+ *                  value: "abc"
+ *              }
+ *          }
+ *      }
+ * ]
+ *  */ 
+ldt.buildJSONLDTrees = async (graph) => {
+
+    if(graph == undefined) return graph;
+
+    return new Promise((resolve, reject) => {
+
+        graph = graph.map((item, i) => {
+            if(item['@id']){
+
+                // Find match
+                graph.forEach(item2 => {
+                    Object.keys(item2).forEach(key => {
+
+                        // If the value of the object item is equal to the item['@id']
+                        // And IMPORTANT that it is not the item itself
+                        if(item2[key] == item['@id'] && key != '@id'){
+
+                            // Overwrite value with a copy of the object
+                            item2[key] = JSON.parse(JSON.stringify(item));
+
+                            // Set id to null to indicate that this item has been copied to a tree
+                            item['@id'] = null;
+
+                        }
+                    })
+                });
+            }
+            return item;
+        })
+        .filter(item => item['@id'] != null);
+
+        resolve(graph);
+
+    });
+}
+
 module.exports = ldt;

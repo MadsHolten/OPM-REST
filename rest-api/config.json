@@ -63,6 +63,50 @@
         {
             "prefix": "nir",
             "uri": "https://www.bim.niras.com/ontology#"
+        },
+        {
+            "prefix": "tl",
+            "uri": "http://purl.org/NET/c4dm/timeline.owl#"
+        },
+        {
+            "prefix": "sh", 
+            "uri": "http://www.w3.org/ns/shacl#"
+        },
+        {
+            "prefix": "wgs84", 
+            "uri": "http://www.w3.org/2003/01/geo/wgs84_pos#"
+        },
+        {
+            "prefix": "qudt", 
+            "uri": "http://qudt.org/schema/qudt/"
+        },
+        {
+            "prefix": "icc", 
+            "uri": "https://sbi.dk/ontologies/icc#"
+        },
+        {
+            "prefix": "br18", 
+            "uri": "https://bygningsreglementet.dk/ontology/br18#"
+        },
+        {
+            "prefix": "seas", 
+            "uri": "https://w3id.org/seas/"
+        },
+        {
+            "prefix": "sd", 
+            "uri": "http://www.w3.org/ns/sparql-service-description#"
+        },
+        {
+            "prefix": "omg", 
+            "uri": "https://w3id.org/omg#"
+        },
+        {
+            "prefix": "fog", 
+            "uri": "https://w3id.org/fog#"
+        },
+        {
+            "prefix": "rvt", 
+            "uri": "https://example.org/rvt#"
         }
     ],
     "typeMappings": [
