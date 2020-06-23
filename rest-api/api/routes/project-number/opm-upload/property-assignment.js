@@ -108,7 +108,7 @@ module.exports = (app) => {
 
 const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
-    var msg;
+    let msg = "";
 
     process.env.DEBUG && console.log(`Uploading file to temp graph in triplestore`);
 

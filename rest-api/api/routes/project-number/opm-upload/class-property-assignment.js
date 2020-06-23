@@ -110,7 +110,7 @@ module.exports = (app) => {
 
 const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
-    var msg = "";
+    let msg = "";
 
     // Upload file to temp graph in triplestore
     await global.helpers.triplestoreConnection.loadFile(projectNumber, tempFilePath, tempGraphURI);
