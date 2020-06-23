@@ -237,6 +237,7 @@ const _getRestored = async () => {
 
     var q = `
         PREFIX opm: <https://w3id.org/opm#>
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
         SELECT DISTINCT ?s
         WHERE {
             # MUST EXIST IN TEMP GRAPH
