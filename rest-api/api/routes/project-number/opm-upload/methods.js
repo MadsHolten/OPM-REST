@@ -41,7 +41,7 @@ module.exports = {
         }
         WHERE{
             BIND(<${dsURI}> AS ?ds)
-            BIND(IRI(CONCAT(REPLACE("${dsURI}", "(?!([^/]*/){2}).*", "sync-jobs/"), ${uuidv4()})) AS ?sj)
+            BIND(IRI( REPLACE("${dsURI}", "(?!([^/]*/){2}).*", "sync-jobs/${uuidv4()}") ) AS ?sj)
             BIND(NOW() AS ?now)
             ${aff ? 'VALUES ?affected { '+affectedURIs+ ' }' : ''}
         }`;

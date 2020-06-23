@@ -176,11 +176,6 @@ const _opmMain = async (projectNumber, tempFilePath, tempGraphURI) => {
 
 const _opmBatchCreate = async () => {
 
-    // GUIDs are generated here rather than in the query using STRUUID()
-    // Thereby, the same GUIDs are used in all triplestores
-    const propGUID = uuidv4();
-    const stateGUID = uuidv4();
-
     let q = `CONSTRUCT{
             ?foiURI ?prop ?propURI .
             ?propURI opm:hasPropertyState ?stateURI .
@@ -196,8 +191,8 @@ const _opmBatchCreate = async () => {
             MINUS {
                 ?foiURI ?prop ?x
             }
-            BIND(IRI(CONCAT(REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "properties/"), ${propGUID})) AS ?propURI)
-            BIND(IRI(CONCAT(REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "states/"), ${stateGUID})) AS ?stateURI)
+            BIND( IRI( REPLACE( STR(?foiURI), "(?!([^/]*/){2}).*", "properties/${uuidv4()}" ) ) AS ?propURI )
+            BIND( IRI( REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "states/${uuidv4()}") ) AS ?stateURI )
             BIND(NOW() AS ?now)
         }`;
     
@@ -233,10 +228,6 @@ const _opmMarkOutdated = async () => {
 
 const _opmBatchUpdate = async () => {
 
-    // GUID is generated here rather than in the query using STRUUID()
-    // Thereby, the same GUID is used in all triplestores
-    const stateGUID = uuidv4();
-
     q = `CONSTRUCT {
             ?previousState a opm:OutdatedPropertyState ;
                 prov:invalidatedAtTime ?now .
@@ -255,7 +246,7 @@ const _opmBatchUpdate = async () => {
             ?previousState a opm:CurrentPropertyState ;
                 schema:value ?currentVal .
             FILTER(xsd:string(?newVal) != xsd:string(?currentVal))
-            BIND(IRI(CONCAT(REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "states/"), ${stateGUID})) AS ?stateURI)
+            BIND( IRI( REPLACE(STR(?foiURI), "(?!([^/]*/){2}).*", "states/${uuidv4()}") ) AS ?stateURI )
             BIND(NOW() AS ?now)
         }`;
 
