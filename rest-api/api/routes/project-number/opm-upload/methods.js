@@ -1,3 +1,5 @@
+const uuidv4 = require('uuid/v4');
+
 module.exports = {
 
     // Check if a JSON-LD graph item includes the specified type or a subset of it
