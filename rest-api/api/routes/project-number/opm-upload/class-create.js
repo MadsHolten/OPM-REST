@@ -244,7 +244,7 @@ const _getRestored = async () => {
                 ?s a owl:Class
             }
 
-            # MUST BE DELETED AND BELONG TO SAME DATA SOURCE
+            #  BELONG TO SAME DATA SOURCE
             ?s a opm:Deleted ;
                 opm:dataSource <${dsURI}> .
         }`;
