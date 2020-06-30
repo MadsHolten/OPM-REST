@@ -187,9 +187,15 @@ const _opmBatchClassPropertyCreate = async () => {
                 ] .
             }
 
-            BIND( IRI( REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "properties/${uuidv4()}") ) AS ?propURI)
-            BIND( IRI( REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "states/${uuidv4()}") ) AS ?stateURI)
-            BIND( IRI( REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "restrictions/${uuidv4()}") ) AS ?restrictionURI)
+            # NB! NOT WORKING SINCE SAME GUID WILL BE USED FOR ALL NEW STATES
+            #BIND( IRI( REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "properties/${uuidv4()}") ) AS ?propURI)
+            #BIND( IRI( REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "states/${uuidv4()}") ) AS ?stateURI)
+            #BIND( IRI( REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "restrictions/${uuidv4()}") ) AS ?restrictionURI)
+
+            BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "properties/"), STRUUID())) AS ?propURI)
+            BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "states/"), STRUUID())) AS ?stateURI)
+            BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "restrictions/"), STRUUID())) AS ?restrictionURI)
+
             BIND(NOW() AS ?now)
         }`
 
@@ -251,7 +257,12 @@ const _opmBatchClassPropertyUpdate = async () => {
                 ?previousState a opm:CurrentPropertyState ;
                     schema:value ?currentVal .
                 FILTER(xsd:string(?newVal) != xsd:string(?currentVal))
-                BIND( IRI( REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "states/${uuidv4()}") ) AS ?stateURI )
+
+                # NB! NOT WORKING SINCE SAME GUID WILL BE USED FOR ALL NEW STATES
+                #BIND( IRI( REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "states/${uuidv4()}") ) AS ?stateURI )
+
+                BIND(IRI(CONCAT(REPLACE(STR(?classURI), "(?!([^/]*/){2}).*", "states/"), STRUUID())) AS ?stateURI)
+
                 BIND(NOW() AS ?now)
             }`;
 
