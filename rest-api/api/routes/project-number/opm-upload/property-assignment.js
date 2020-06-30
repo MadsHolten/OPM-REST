@@ -68,7 +68,7 @@ module.exports = (app) => {
                 process.env.DEBUG && console.log('  - '+msg+'\n');
                 res.send(msg)
             }catch(e){
-                console.log("Something failed");
+                console.log(e);
                 return next({msg: e.message, status: e.status})
             }
         }
@@ -96,6 +96,7 @@ module.exports = (app) => {
                     process.env.DEBUG && console.log('  - '+msg+'\n');
                     res.send(msg)
                 }catch(e){
+                    console.log(e);
                     return next({msg: e.message, status: e.status})
                 }
 

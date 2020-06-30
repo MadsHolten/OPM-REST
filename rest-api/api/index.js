@@ -11,7 +11,7 @@ global.config = require('../config.json')
 // MIDDLEWARE
 app.use(compression());
 app.use(bodyParser({limit: '500mb'}));
-app.use(bodyParser.json({ type: 'application/*+json' }));           // Parse JSON
+app.use(bodyParser.json({ limit: '500mb', type: 'application/*+json' }));           // Parse JSON
 app.use(bodyParser.text({ limit: '500mb', type: 'text/turtle' }));  // Parse turtle
 app.use(cors());
 
