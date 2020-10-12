@@ -6,6 +6,7 @@ const urljoin = require('url-join');
 
 // Set base URI and authentication settings
 const auth = `Basic ${Buffer.from(process.env.FUSEKI_USER + ":" + process.env.FUSEKI_PASS).toString('base64')}`;
+const allowInsecure = process.env.ALLOW_INSECURE || 1;
 
 var mainObject = {};
 
@@ -38,7 +39,8 @@ mainObject.getQuery = async (dbName, q, mimeType) => {
         uri,
         form: payload,
         headers,
-        json: true
+        json: true,
+        strictSSL: !(allowInsecure == 1)
     };
 
     return rp(options);
@@ -69,7 +71,8 @@ mainObject.updateQuery = async (dbName,q) => {
         method: 'POST',
         uri,
         form: payload,
-        headers
+        headers,
+        strictSSL: !(allowInsecure == 1)
     };
 
     return rp(options);
@@ -117,7 +120,8 @@ mainObject.loadFile = async (dbName, filePath, namedGraph) => {
         method: 'POST',
         uri,
         headers,
-        formData
+        formData,
+        strictSSL: !(allowInsecure == 1),
     };
 
     if(namedGraph) options.qs = {graph: namedGraph};
@@ -147,7 +151,8 @@ mainObject.loadTriples = async (dbName, triples, mimeType, namedGraph) => {
         method: 'POST',
         uri: uri,
         headers,
-        body: JSON.stringify(triples)
+        body: JSON.stringify(triples),
+        strictSSL: !(allowInsecure == 1)
     };
 
     if(namedGraph) options.qs = {graph: namedGraph};
